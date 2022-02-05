@@ -23,6 +23,18 @@ namespace CompanyManager.Server.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Offer>()
+                .HasMany(o => o.Appointments)
+                .WithOne(a => a.Offer)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
+            modelBuilder.Entity<Appointment>()
+                .HasMany(a => a.Photos)
+                .WithOne(p => p.Appointment)
+                .OnDelete(DeleteBehavior.ClientSetNull);
+
             OfferCategorySeeder.Seed(modelBuilder);
             OfferSeeder.Seed(modelBuilder);
         }

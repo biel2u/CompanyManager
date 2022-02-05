@@ -13,8 +13,8 @@ namespace CompanyManager.Server.Models
 
         public Customer Customer { get; set; } = null!;
 
-        public int AppointmentId { get; set; }
+        public int? AppointmentId { get; set; }
 
-        public Appointment Appointment { get; set; } = null!;
+        public Appointment? Appointment { get; set; }
     }
 }

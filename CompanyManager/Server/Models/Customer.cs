@@ -23,6 +23,6 @@ namespace CompanyManager.Server.Models
 
         public Consent Consent { get; set; } = null!;
 
-        public ICollection<Photo> Photos { get; set; } = null!;
+        public ICollection<Photo>? Photos { get; set; }
     }
 }

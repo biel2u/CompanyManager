@@ -15,10 +15,10 @@ namespace CompanyManager.Server.Models
 
         public AppointmentStatus Status { get; set; }
 
-        public int ServiceId { get; set; }
+        public int? OfferId { get; set; }
 
-        public Offer Service { get; set; } = null!;
+        public Offer? Offer { get; set; }
 
-        public ICollection<Photo> Photos { get; set; } = null!;
+        public ICollection<Photo>? Photos { get; set; }
     }
 }
