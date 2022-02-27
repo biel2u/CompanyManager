@@ -1,6 +1,6 @@
-﻿namespace CompanyManager.Server.Models
+﻿namespace CompanyManager.Shared
 {
-    public enum AppointmentStatus : int
+    public enum AppointmentStatus
     {
         None = 0,
         Pending = 1,
