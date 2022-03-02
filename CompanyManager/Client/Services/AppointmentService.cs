@@ -18,16 +18,9 @@ namespace CompanyManager.Client.Services
         }
 
         public async Task<AppointmentViewModel> GetAsync()
-        {
-            try
-            {
-                var response = await http.GetFromJsonAsync<AppointmentViewModel>("Appointment");
-                return response ?? new AppointmentViewModel();
-            }
-            catch (Exception ex)
-            {
-                return new AppointmentViewModel();
-            }
+        {            
+            var response = await http.GetFromJsonAsync<AppointmentViewModel>("Appointment");
+            return response ?? new AppointmentViewModel();          
         }
     }
 }

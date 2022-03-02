@@ -1,10 +1,10 @@
 ﻿@inherits LayoutComponentBase
-<MudThemeProvider/>
+<MudThemeProvider Theme="MyCustomTheme"/>
 
 <div class="page">
-    <div class="sidebar">
+@*    <div class="sidebar">
         <NavMenu />
-    </div>
+    </div>*@
 
     <main>
         <div class="top-row px-4 auth">
@@ -17,3 +17,14 @@
         </article>
     </main>
 </div>
+
+@code{
+    MudTheme MyCustomTheme = new MudTheme()
+    {
+        Palette = new Palette()
+        {
+            Primary = Colors.Teal.Darken3,
+            Secondary = Colors.Grey.Lighten4
+        },       
+    };
+}

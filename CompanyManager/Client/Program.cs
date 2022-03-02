@@ -1,4 +1,5 @@
 using CompanyManager.Client;
+using CompanyManager.Client.Helpers;
 using CompanyManager.Client.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
@@ -18,6 +19,8 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 builder.Services.AddApiAuthorization();
 
 builder.Services.AddTransient<IAppointmentService, AppointmentService>();
+builder.Services.AddTransient<ICalendar, Calendar>();
+builder.Services.AddTransient<ICalendarControls, CalendarControls>();
 
 builder.Services.AddMudServices();
 

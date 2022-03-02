@@ -1,0 +1,16 @@
+﻿.calendar-control-panel {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+}
+
+.calendar-wrapper {
+    width: 80%;
+}
+
+.calendar-controls {
+    margin-right: 1rem;
+    box-shadow: 1px 1px 15px rgb(0 0 0 / 10%);
+    padding: 0.5rem;
+}

@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31919.166
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyManager.Server", "CompanyManager\Server\CompanyManager.Server.csproj", "{226AFB2D-8959-46F1-9292-0E0E00A2AEA4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyManager.Server", "CompanyManager\Server\CompanyManager.Server.csproj", "{226AFB2D-8959-46F1-9292-0E0E00A2AEA4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyManager.Client", "CompanyManager\Client\CompanyManager.Client.csproj", "{1D5C5ABD-C551-4D4A-85F2-91D1F1A85172}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyManager.Client", "CompanyManager\Client\CompanyManager.Client.csproj", "{1D5C5ABD-C551-4D4A-85F2-91D1F1A85172}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyManager.Shared", "CompanyManager\Shared\CompanyManager.Shared.csproj", "{EBCA5744-5C89-43EE-AAF7-B7B568185EEE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyManager.Shared", "CompanyManager\Shared\CompanyManager.Shared.csproj", "{EBCA5744-5C89-43EE-AAF7-B7B568185EEE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

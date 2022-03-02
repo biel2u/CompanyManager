@@ -1,0 +1,51 @@
+﻿.calendar-hours-wrapper {
+    height: 80vh;
+    overflow-y: scroll;
+    padding: 0 0.2rem 0 0.5rem;
+}
+
+.calendar-hours {
+    height: 1500px;
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-rows: repeat(1, 1fr);
+    grid-template-columns: repeat(8, 1fr);
+    box-shadow: 0 0 15px rgb(0 0 0 / 20%);
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.current-day {
+    background: rgba(178, 223, 219, 0.3);
+}
+
+.current-minute {
+    border-top: 1px dashed #004D40;
+    margin: 0 0.5rem;
+}
+
+.current-hour {
+    box-shadow: 1px 1px 15px rgb(0 0 0 / 10%);
+}
+
+.hour {
+    padding: 0.5rem;
+}
+
+.day{
+}
+
+.current-date {
+    color: #004D40;
+}
+
+.controls {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    color: black;
+}
