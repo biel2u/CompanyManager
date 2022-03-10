@@ -4,6 +4,7 @@ namespace CompanyManager.Server.Models
 {
     public class Customer
     {
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Column(TypeName = "nvarchar(20)")]
@@ -16,7 +17,7 @@ namespace CompanyManager.Server.Models
         public string Phone { get; set; } = null!;
 
         [Column(TypeName = "nvarchar(255)")]
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; } = null!;
 
         [Column(TypeName = "nvarchar(max)")]
         public string? Note { get; set; }

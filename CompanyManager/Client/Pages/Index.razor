@@ -1,23 +1,31 @@
-﻿@page "/"
+﻿@inject IDialogService DialogService
+@page "/"
 
 <PageTitle>Kalendarz</PageTitle>
 
 <div class="calendar-control-panel">
     <div class="calendar-controls">
-        <MudDatePicker PickerVariant="PickerVariant.Static" Date="@DateTimeSelected" DateChanged="OnDateChange" />
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large">Dodaj +</MudButton>
+        <MudDatePicker PickerVariant="PickerVariant.Static" Date="@dateTimeSelected" DateChanged="OnDateChange" />
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" @onclick="OpenDialog">Dodaj +</MudButton>
     </div>
     <div class="calendar-wrapper">
-        <CalendarComponent />
+        <CalendarComponent @ref="calendarComponent" />
     </div>
 </div>
 
 @code {
-    private DateTime DateTimeSelected = DateTime.Today;
+    private CalendarComponent calendarComponent = null!;
+    private DateTime dateTimeSelected = DateTime.Today;
 
-    private void OnDateChange(DateTime? newDateTime)
+    private async Task OnDateChange(DateTime? newDateTime)
     {
-        DateTimeSelected = newDateTime != null ? newDateTime.Value : DateTimeSelected;
-        Console.WriteLine(DateTimeSelected);
+        dateTimeSelected = newDateTime != null ? newDateTime.Value : dateTimeSelected;
+        await calendarComponent.SetCalendarForSelectedDate(dateTimeSelected);
+    }
+
+    private void OpenDialog()
+    {
+		var options = new DialogOptions { CloseOnEscapeKey = true };
+        DialogService.Show<AddAppointmentModal>("Dodaj wizyte", options);
     }
 }

@@ -31,7 +31,7 @@ namespace CompanyManager.Server.Features.Appointments
         {
             return new AppointmentViewModel
             {
-                Customer = new CustomerViewModel(),
+                //Customer = new CustomerViewModel(),
                 Date = DateTime.Now,
                 Note = "lol notka",
                 Offer = new OfferViewModel(),

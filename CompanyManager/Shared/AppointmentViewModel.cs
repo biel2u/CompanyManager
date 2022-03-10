@@ -6,7 +6,7 @@
 
         public TimeSpan? Time { get; set; }
 
-        public CustomerViewModel Customer { get; set; } = new CustomerViewModel();
+        public CustomerSelector CustomerSelector { get; set; } = new CustomerSelector();
 
         public string? Note { get; set; }
 

@@ -18,7 +18,7 @@
 
     </div>
 
-    @foreach(var day in CalendarDates)
+    @foreach(var day in calendarDates)
     {       
         <div class="day" style="grid-area: 1 / @day.Column / @CalendarConstants.GridHourRows / @(day.Column + 1);">
             @if (day.IsCurrentDay)
@@ -36,12 +36,12 @@
 </div>
 <div class="calendar-hours-wrapper">
     <div class="calendar-hours" style="grid-template-rows: repeat(@CalendarConstants.GridTotalRows, 1fr);">
-        @if(SelectedWeek == 0)
+        @if(selectedWeek == 0)
         {
-           <div class="current-day" style="grid-area: 1 / @(CurrentDayOfWeek + CalendarConstants.TimeRowStart + 1)  / @CalendarConstants.GridTotalRows / @(CurrentDayOfWeek + CalendarConstants.TimeRowStart + 2);"></div> 
+           <div class="current-day" style="grid-area: 1 / @(currentDayOfWeek + CalendarConstants.TimeRowStart + 1)  / @CalendarConstants.GridTotalRows / @(currentDayOfWeek + CalendarConstants.TimeRowStart + 2);"></div> 
         }
         
-        @foreach(var time in CalendarTimes)
+        @foreach(var time in calendarTimes)
         {
             if(time.IsCurrentTime)
             {
@@ -61,67 +61,77 @@
 </div>
 
 @code {
-    private List<CalendarDate> CalendarDates = new List<CalendarDate>();
-    private List<CalendarTime> CalendarTimes = new List<CalendarTime>();
-    private Timer Timer { get; } = new Timer { Interval = 60000 };
-    private bool ShouldScrollToCurrentTime = false;
-    private int CurrentDayOfWeek;
-    private int SelectedWeek = 0;
+    private List<CalendarDate> calendarDates = new List<CalendarDate>();
+    private List<CalendarTime> calendarTimes = new List<CalendarTime>();
+    private Timer timer { get; } = new Timer { Interval = 60000 };
+    private DateTime selectedDate = DateTime.Now;
+    private bool shouldScrollToCurrentTime = false;
+    private int currentDayOfWeek;
+    private int selectedWeek = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        CurrentDayOfWeek = await Calendar.GetCurrentDayOfWeekWithMondayAsFirstDayOfTheWeek();
-        var buildCalendarDatesTask = Task.Run(() => Calendar.BuildCalendarDates(CurrentDayOfWeek));
+        currentDayOfWeek = await Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
+        var buildCalendarDatesTask = Task.Run(() => Calendar.BuildCalendarDates(currentDayOfWeek));
         var buildCalendarTimesTask = Task.Run(() => Calendar.BuildCalendarTimes());
 
-        CalendarDates = await buildCalendarDatesTask;
-        CalendarTimes = await buildCalendarTimesTask;
+        calendarDates = await buildCalendarDatesTask;
+        calendarTimes = await buildCalendarTimesTask;
 
         SetTimer();
-        ShouldScrollToCurrentTime = true;
+        shouldScrollToCurrentTime = true;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (ShouldScrollToCurrentTime)
+        if (shouldScrollToCurrentTime)
         {
             await JSRuntime.InvokeVoidAsync("scrollIntoView", "current-hour");
-            ShouldScrollToCurrentTime = false;
+            shouldScrollToCurrentTime = false;
         }
+    }
+
+    public async Task SetCalendarForSelectedDate(DateTime selectedDateTime)
+    {
+        var calendarWeek = await CalendarControls.SetCalendarForSelectedWeek(calendarDates, selectedDateTime, currentDayOfWeek);
+        calendarDates = calendarWeek.CalendarDates;
+        selectedWeek = calendarWeek.SelectedWeek;
+
+        StateHasChanged();
     }
 
     private async Task NextWeek()
     {
-        SelectedWeek++;
-        CalendarDates = await CalendarControls.SwitchWeek(CalendarDates, SelectedWeek, true, CurrentDayOfWeek);
+        selectedWeek++;
+        calendarDates = await CalendarControls.SwitchWeek(calendarDates, selectedWeek, true, currentDayOfWeek);
     }
 
     private async Task PreviousWeek()
     {
-        SelectedWeek--;
-        CalendarDates = await CalendarControls.SwitchWeek(CalendarDates, SelectedWeek, false, CurrentDayOfWeek);
+        selectedWeek--;
+        calendarDates = await CalendarControls.SwitchWeek(calendarDates, selectedWeek, false, currentDayOfWeek);
     }
 
     private async Task CurrentWeek()
     {        
-        SelectedWeek = 0;
-        CalendarDates = await CalendarControls.SetCurrentWeek(CalendarDates, CurrentDayOfWeek);
+        selectedWeek = 0;
+        calendarDates = await CalendarControls.SetCurrentWeek(calendarDates, currentDayOfWeek);
     }
 
     private void SetTimer()
     {
-        Timer.Elapsed += async (_, _) => await SetCurrentHourAndMinuteRowEvent(CalendarTimes);
-        Timer.Start();
+        timer.Elapsed += async (_, _) => await SetCurrentHourAndMinuteRowEvent(calendarTimes);
+        timer.Start();
     }
 
     private async Task SetCurrentHourAndMinuteRowEvent(List<CalendarTime> calendarTimes)
     {
-        CalendarTimes = await Calendar.SetCurrentHourAndMinuteRow(calendarTimes);
+        calendarTimes = await Calendar.SetCurrentHourAndMinuteRow(calendarTimes);
         StateHasChanged();
     }
 
     public void Dispose()
     {
-        Timer?.Dispose();
+        timer?.Dispose();
     }
 }

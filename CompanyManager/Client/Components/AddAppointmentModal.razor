@@ -1,0 +1,37 @@
+﻿@using CompanyManager.Shared
+
+<MudDialog>
+    <DialogContent>
+        <MudDatePicker Label="Data" @bind-Date="appointment.Date"/>
+        <MudAutocomplete T="string" Label="Klient" @bind-Value="customerSelector.CustomerDisplayName" SearchFunc="@SearchCustomer"
+                         ResetValueOnEmptyText="true"
+                         CoerceText="true" CoerceValue="false" />
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    private AppointmentViewModel appointment = new AppointmentViewModel
+    {
+        Date = DateTime.Now
+    };
+
+    private CustomerSelector customerSelector = new CustomerSelector();
+    private IEnumerable<CustomerSelector> customerSelectorCollection;
+
+    private async Task<IEnumerable<string>> SearchCustomer(string value)
+    {
+        //if (string.IsNullOrEmpty(value)) 
+        return await Task.FromResult(Enumerable.Empty<string>());
+
+        //return states.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

@@ -6,7 +6,7 @@ namespace CompanyManager.Client.Helpers
     {
         Task<List<CalendarDate>> BuildCalendarDates(int currentDayOfWeek);
         Task<List<CalendarTime>> BuildCalendarTimes();
-        Task<int> GetCurrentDayOfWeekWithMondayAsFirstDayOfTheWeek();
+        Task<int> GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime);
         Task<List<CalendarTime>> SetCurrentHourAndMinuteRow(List<CalendarTime> calendarTimes);
     }
 
@@ -37,17 +37,17 @@ namespace CompanyManager.Client.Helpers
             return Task.FromResult(calendarDates);
         }
 
-        public Task<int> GetCurrentDayOfWeekWithMondayAsFirstDayOfTheWeek()
+        public Task<int> GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime)
         {
-            var currentDayColumn = (int)DateTime.Now.DayOfWeek - 1;
+            var dayOfWeek = (int)dateTime.DayOfWeek - 1;
             const int sundayAsLastDayOfWeek = 6;
 
-            if (currentDayColumn < 0)
+            if (dayOfWeek < 0)
             {
-                currentDayColumn = sundayAsLastDayOfWeek;
+                dayOfWeek = sundayAsLastDayOfWeek;
             }
 
-            return Task.FromResult(currentDayColumn);
+            return Task.FromResult(dayOfWeek);
         }
 
         public Task<List<CalendarTime>> BuildCalendarTimes()
