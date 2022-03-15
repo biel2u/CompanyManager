@@ -8,6 +8,6 @@
 
         public int TimeInMinutes { get; set; }
 
-        public string OfferCategory { get; set; } = null!;
+        public string OfferCategoryName { get; set; } = null!;
     }
 }

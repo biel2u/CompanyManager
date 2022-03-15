@@ -1,17 +1,23 @@
-﻿namespace CompanyManager.Shared
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace CompanyManager.Shared
 {
     public class AppointmentViewModel
     {
+        [Required]
         public DateTime? Date { get; set; }
 
+        [Required]
         public TimeSpan? Time { get; set; }
 
-        public CustomerSelector CustomerSelector { get; set; } = new CustomerSelector();
+        [Required]
+        public string CustomerNameAndPhone { get; set; } = string.Empty;
 
         public string? Note { get; set; }
 
-        public AppointmentStatus Status { get; set; }
+        public bool Confirmed { get; set; }
 
-        public OfferViewModel Offer { get; set; } = new OfferViewModel();
+        [Required]
+        public IEnumerable<OfferViewModel> Offers { get; set; } = Enumerable.Empty<OfferViewModel>();
     }
 }

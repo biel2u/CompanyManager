@@ -9,6 +9,7 @@ namespace CompanyManager.Server.Profiles
         public AutoMapperProfile()
         {
             CreateMap<Customer, CustomerViewModel>().ReverseMap();
+            CreateMap<Offer, OfferViewModel>().ForMember(dest => dest.OfferCategoryName, opt => opt.MapFrom(o => o.OfferCategory.Name));
         }
     }
 }

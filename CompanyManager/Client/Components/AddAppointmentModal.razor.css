@@ -1,0 +1,39 @@
+﻿.content-wrapper {
+    display: flex;
+    flex-direction: row;
+    height: 500px;
+}
+
+.offers-container {
+    height: 85%;
+    padding-right: 0.5rem;
+    overflow-y: scroll;
+    margin-top: 0.5rem;
+}
+
+.offers-wrapper {
+    margin-left: 2rem;
+}
+
+.offer-input {
+    width: 50%;
+    border: 0;
+    border-bottom: 2px solid gray;
+    outline: 0;
+    margin-left: 0.5rem;
+}
+
+.offer-item{
+    padding: 5px 0;
+}
+
+.oi-plus {
+    color: #00695C;
+    margin: 0 0.5rem;
+    padding: 5px;
+}
+
+    .oi-plus:hover {
+        cursor: pointer;
+        box-shadow: 1px 1px 15px rgb(0 0 0 / 20%);
+    }

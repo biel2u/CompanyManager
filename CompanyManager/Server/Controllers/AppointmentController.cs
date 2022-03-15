@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CompanyManager.Server.Features.Appointments
+namespace CompanyManager.Server.Controllers
 {
     [Authorize]
     [Route("[controller]")]
@@ -26,17 +26,16 @@ namespace CompanyManager.Server.Features.Appointments
 
         }
 
-        [HttpGet]
-        public AppointmentViewModel Get()
-        {
-            return new AppointmentViewModel
-            {
-                //Customer = new CustomerViewModel(),
-                Date = DateTime.Now,
-                Note = "lol notka",
-                Offer = new OfferViewModel(),
-                Status = AppointmentStatus.Pending
-            };
-        }
+        //[HttpGet]
+        //public AppointmentViewModel Get()
+        //{
+        //    return new AppointmentViewModel
+        //    {
+        //        //Customer = new CustomerViewModel(),
+        //        Date = DateTime.Now,
+        //        Note = "lol notka",
+        //        Offer = new OfferViewModel()
+        //    };
+        //}
     }
 }

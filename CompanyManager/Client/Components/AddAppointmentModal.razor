@@ -1,36 +1,63 @@
-﻿@using CompanyManager.Shared
+﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Shared
+@inject ICustomerDataService CustomerDataService
+@inject IOfferDataService OfferDataService 
 
 <MudDialog>
     <DialogContent>
-        <MudDatePicker Label="Data" @bind-Date="appointment.Date"/>
-        <MudAutocomplete T="string" Label="Klient" @bind-Value="customerSelector.CustomerDisplayName" SearchFunc="@SearchCustomer"
-                         ResetValueOnEmptyText="true"
-                         CoerceText="true" CoerceValue="false" />
-
+        <div class="content-wrapper">
+            <div>        
+                <MudDatePicker Label="Data*" @bind-Date="_appointment.Date"/>
+                <MudTimePicker Label="Godzina*" @bind-Time="_hour" />
+                <MudAutocomplete T="string" Label="Klient*" @bind-Value="_selectedCustomer" SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
+                <MudTextField T="string" Label="Notatka" Variant="Variant.Text" Text="@_appointment.Note" Lines="5" />
+                <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="@_appointment.Confirmed" Color="Color.Primary"></MudCheckBox>
+            </div>
+            <div class="offers-wrapper">
+            <input class="offer-input" @bind-value="_offerSearchValue" @bind-value:event="oninput" placeholder="Wyszukaj zabieg..."></input>
+                <div class="offers-container">
+                     @foreach(var offer in FilteredOffers)
+                    {
+                        <div class="offer-item">
+                            <span class="oi oi-plus"></span> @offer.Name
+                        </div>
+                    }
+                </div>              
+            </div>
+        </div>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        <MudButton OnClick="Cancel">Anuluj</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Zapisz</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
-    private AppointmentViewModel appointment = new AppointmentViewModel
+    [CascadingParameter] 
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private string _selectedCustomer = string.Empty;
+    private string _offerSearchValue = string.Empty;
+    private TimeSpan? _hour = DateTime.Now.TimeOfDay;
+    private IEnumerable<IGrouping<string, OfferViewModel>> _offerViewModel = Enumerable.Empty<IGrouping<string, OfferViewModel>>();
+    private AppointmentViewModel _appointment = new AppointmentViewModel
     {
         Date = DateTime.Now
     };
 
-    private CustomerSelector customerSelector = new CustomerSelector();
-    private IEnumerable<CustomerSelector> customerSelectorCollection;
-
-    private async Task<IEnumerable<string>> SearchCustomer(string value)
+    protected override async Task OnInitializedAsync()
     {
-        //if (string.IsNullOrEmpty(value)) 
-        return await Task.FromResult(Enumerable.Empty<string>());
-
-        //return states.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+        _offerViewModel = await OfferDataService.GetOffers();
     }
+
+    private async Task<IEnumerable<string>> SearchCustomer(string searchValue)
+    {
+        var customerList = await CustomerDataService.SearchCustomers(searchValue);
+        return customerList;
+    }
+
+    IEnumerable<IGrouping<string, OfferViewModel>> FilteredOffers => _offerViewModel.Where(
+            o => o.Key.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase)).ToList();
 
     void Submit() => MudDialog.Close(DialogResult.Ok(true));
     void Cancel() => MudDialog.Cancel();

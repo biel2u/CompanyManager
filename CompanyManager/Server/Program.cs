@@ -1,6 +1,7 @@
 using CompanyManager.Server.Data;
-using CompanyManager.Server.Features.Customers;
 using CompanyManager.Server.Models;
+using CompanyManager.Server.Repositories;
+using CompanyManager.Server.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -26,7 +27,10 @@ builder.Services.AddRazorPages();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<IOfferRepository, OfferRepository>();
+
 builder.Services.AddTransient<ICustomerService, CustomerService>();
+builder.Services.AddTransient<IOfferService, OfferService>();
 
 var app = builder.Build();
 

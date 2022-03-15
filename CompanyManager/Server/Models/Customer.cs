@@ -4,7 +4,6 @@ namespace CompanyManager.Server.Models
 {
     public class Customer
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Column(TypeName = "nvarchar(20)")]

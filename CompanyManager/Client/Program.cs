@@ -1,6 +1,6 @@
 using CompanyManager.Client;
 using CompanyManager.Client.Helpers;
-using CompanyManager.Client.Services;
+using CompanyManager.Client.DataServices;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -18,7 +18,10 @@ builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().Cre
 
 builder.Services.AddApiAuthorization();
 
-builder.Services.AddTransient<IAppointmentService, AppointmentService>();
+builder.Services.AddTransient<IAppointmentDataService, AppointmentDataService>();
+builder.Services.AddTransient<ICustomerDataService, CustomerDataService>();
+builder.Services.AddTransient<IOfferDataService, OfferDataService>();
+
 builder.Services.AddTransient<ICalendar, Calendar>();
 builder.Services.AddTransient<ICalendarControls, CalendarControls>();
 
