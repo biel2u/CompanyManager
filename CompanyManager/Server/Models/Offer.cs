@@ -4,6 +4,11 @@ namespace CompanyManager.Server.Models
 {
     public class Offer
     {
+        public Offer()
+        {
+            Appointments = new HashSet<Appointment>();
+        }
+
         public int Id { get; set; }
 
         [Column(TypeName = "nvarchar(100)")]

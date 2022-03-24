@@ -5,22 +5,30 @@ namespace CompanyManager.Client.DataServices
 {
     public interface IAppointmentDataService
     {
-        Task<AppointmentViewModel> GetAsync();
+        Task<AppointmentEditForm> Get();
+        Task<bool> Create(AppointmentEditForm appointment);
     }
 
     public class AppointmentDataService : IAppointmentDataService
     {
         private readonly HttpClient _http;
+        private readonly string ControllerName = "Appointment";
 
         public AppointmentDataService(HttpClient http)
         {
             _http = http;
         }
 
-        public async Task<AppointmentViewModel> GetAsync()
+        public async Task<AppointmentEditForm> Get()
         {            
-            var response = await _http.GetFromJsonAsync<AppointmentViewModel>("Appointment");
-            return response ?? new AppointmentViewModel();          
+            var response = await _http.GetFromJsonAsync<AppointmentEditForm>(ControllerName);
+            return response ?? new AppointmentEditForm();          
+        }
+
+        public async Task<bool> Create(AppointmentEditForm appointment)
+        {
+            var resposne = await _http.PostAsJsonAsync(ControllerName, appointment);
+            return resposne.IsSuccessStatusCode;
         }
     }
 }

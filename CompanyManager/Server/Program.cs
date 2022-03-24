@@ -1,4 +1,5 @@
 using CompanyManager.Server.Data;
+using CompanyManager.Server.Helpers;
 using CompanyManager.Server.Models;
 using CompanyManager.Server.Repositories;
 using CompanyManager.Server.Services;
@@ -28,9 +29,11 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
 builder.Services.AddTransient<IOfferRepository, OfferRepository>();
-
 builder.Services.AddTransient<ICustomerService, CustomerService>();
 builder.Services.AddTransient<IOfferService, OfferService>();
+builder.Services.AddTransient<IAppointmentService, AppointmentService>();
+builder.Services.AddTransient<IDateTimeProvider, DateTimeProvider>();
+builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
 
 var app = builder.Build();
 

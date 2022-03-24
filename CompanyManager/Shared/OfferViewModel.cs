@@ -2,12 +2,14 @@
 {
     public class OfferViewModel
     {
-        public string Name { get; set; } = null!;
+        public int Id { get; set; }
+
+        public string Name { get; set; } = string.Empty;
 
         public decimal Price { get; set; }
 
         public int TimeInMinutes { get; set; }
 
-        public string OfferCategoryName { get; set; } = null!;
+        public bool IsSelected { get; set; }
     }
 }

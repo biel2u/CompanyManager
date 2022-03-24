@@ -18,7 +18,7 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<IGrouping<string, OfferViewModel>>>> GetCustomers()
+        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetCustomers()
         {
             var offers = await _offerService.GetAllOffersByParentCategory();
             return Ok(offers);

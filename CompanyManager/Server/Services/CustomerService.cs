@@ -9,6 +9,7 @@ namespace CompanyManager.Server.Services
     {
         Task<CustomerViewModel> AddCustomer(CustomerViewModel customerViewModel);
         Task<List<string>> SearchCustomers(string searchValue);
+        Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
     }
 
     public class CustomerService : ICustomerService
@@ -28,11 +29,11 @@ namespace CompanyManager.Server.Services
 
             if (int.TryParse(searchValue, out _))
             {
-                customers = await _customerRepository.SearchCustomersByPhone(searchValue);
+                customers = await _customerRepository.GetCustomersByPhone(searchValue);
             }
             else
             {
-                customers = await _customerRepository.SearchCustomersByName(searchValue);
+                customers = await _customerRepository.GetCustomersByName(searchValue);
             }
 
             var customersSearchResult = new List<string>();
@@ -51,6 +52,16 @@ namespace CompanyManager.Server.Services
             var newCustomer = _mapper.Map<CustomerViewModel>(createdCustomer);
 
             return newCustomer;
+        }
+
+        public async Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone)
+        {
+            var start = customerNameAndPhone.IndexOf("(") + 1;
+            var end = customerNameAndPhone.IndexOf(")", start);
+            var phoneNumber = customerNameAndPhone.Substring(start, end - start);
+
+            var customer = await _customerRepository.GetCustomerByPhone(phoneNumber);
+            return customer;
         }
     }
 }

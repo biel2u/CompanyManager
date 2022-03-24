@@ -6,7 +6,7 @@ namespace CompanyManager.Server.Services
 {
     public interface IOfferService
     {
-        Task<IEnumerable<IGrouping<string, OfferViewModel>>> GetAllOffersByParentCategory();
+        Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory();
     }
 
     public class OfferService : IOfferService
@@ -20,13 +20,24 @@ namespace CompanyManager.Server.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<IGrouping<string, OfferViewModel>>> GetAllOffersByParentCategory()
+        public async Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory()
         {
             var offers = await _offerRepository.GetAllOffers();
-            var offersViewModel = _mapper.Map<List<OfferViewModel>>(offers);
-            var offersGrouped = offersViewModel.GroupBy(o => o.OfferCategoryName).Select(grp => grp);
+            var offersGrouped = offers.GroupBy(o => o.OfferCategory.Name).Select(grp => grp);
+            var offersViewModel = new List<OffersGroup>();
 
-            return offersGrouped;
+            foreach (var group in offersGrouped)
+            {
+                var offersInGroup = group.AsEnumerable();
+
+                offersViewModel.Add(new OffersGroup
+                {
+                    OfferGroupName = group.Key,
+                    Offers = _mapper.Map<IEnumerable<OfferViewModel>>(offersInGroup)
+                });
+            }
+
+            return offersViewModel;
         }
     }
 }

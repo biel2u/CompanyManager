@@ -1,53 +1,119 @@
 ﻿@using CompanyManager.Client.DataServices
 @using CompanyManager.Shared
 @inject ICustomerDataService CustomerDataService
-@inject IOfferDataService OfferDataService 
+@inject IAppointmentDataService AppointmentDataService; 
+@inject IOfferDataService OfferDataService;
 
-<MudDialog>
-    <DialogContent>
-        <div class="content-wrapper">
-            <div>        
-                <MudDatePicker Label="Data*" @bind-Date="_appointment.Date"/>
-                <MudTimePicker Label="Godzina*" @bind-Time="_hour" />
-                <MudAutocomplete T="string" Label="Klient*" @bind-Value="_selectedCustomer" SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
-                <MudTextField T="string" Label="Notatka" Variant="Variant.Text" Text="@_appointment.Note" Lines="5" />
-                <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="@_appointment.Confirmed" Color="Color.Primary"></MudCheckBox>
+<EditForm Model="@_appointment" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudDialog>
+        <DialogContent>
+            <div class="content-wrapper">
+                <div>
+                    <MudDatePicker Label="Data*" @bind-Date="_appointment.StartDate"/>
+                    <ValidationMessage For="() => _appointment.StartDate"/>
+
+                    <MudTimePicker Label="Godzina*" @bind-Time="_appointment.Time" />
+                    <ValidationMessage For="() => _appointment.Time"/>
+
+                    <MudAutocomplete T="string" Label="Klient*" @bind-Value="_appointment.CustomerNameAndPhone" 
+                        SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
+                    <ValidationMessage For="() => _appointment.CustomerNameAndPhone"/>
+
+                    <MudTextField T="string" Label="Notatka" Variant="Variant.Text" @bind-Value="_appointment.Note" Lines="5" />
+                    <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="_appointment.Confirmed" Color="Color.Primary" Size="Size.Small" />
+                </div>
+                <div class="offers-wrapper">
+                    <input class="offer-input" @bind-Value="_offerSearchValue" @bind-Value:event="oninput" placeholder="Wyszukaj usługę..."></input>
+                    <div class="offers-container">
+                        @foreach (var offerGroup in FilteredOffers)
+                        {
+                            <b>@offerGroup.OfferGroupName</b>
+                            @foreach (var offer in offerGroup.Offers)
+                            {
+                                <div>
+                                    <MudCheckBox T="bool" Label="@offer.Name" Checked="offer.IsSelected" Size="Size.Small" Color="Color.Primary"
+                                        CheckedChanged="(value) => OfferSelected(offer, value)" />
+                                </div>
+                            }
+                        }
+                    </div>  
+                    <ValidationMessage For="() => _appointment.Offers"/>
+                </div>
+                <div class="summary">
+                    <h6>Podsumowanie</h6>
+                    <div class="selected-offers">
+                        @foreach(var offer in _appointment.Offers)
+                        {
+                            <b>@offer.Name</b>
+                            <MudGrid>
+                                <MudItem xs="5">
+                                    <MudTextField @bind-Value="offer.Price" TextChanged="@UpdateSummarize" HelperText="Cena" Variant="Variant.Outlined" Margin="Margin.Dense" />
+                                </MudItem>
+                                <MudItem xs="5">
+                                    <MudTextField @bind-Value="offer.TimeInMinutes" TextChanged="@UpdateSummarize" HelperText="Czas (minuty)" Variant="Variant.Outlined" Margin="Margin.Dense" />     
+                                </MudItem>
+                            </MudGrid>
+                        }
+                    </div>
+                    <ValidationSummary />
+                </div>
             </div>
-            <div class="offers-wrapper">
-            <input class="offer-input" @bind-value="_offerSearchValue" @bind-value:event="oninput" placeholder="Wyszukaj zabieg..."></input>
-                <div class="offers-container">
-                     @foreach(var offer in FilteredOffers)
-                    {
-                        <div class="offer-item">
-                            <span class="oi oi-plus"></span> @offer.Name
-                        </div>
-                    }
-                </div>              
-            </div>
-        </div>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Anuluj</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Zapisz</MudButton>
-    </DialogActions>
-</MudDialog>
+        </DialogContent>
+        <DialogActions >
+            <div class="price-summarize">
+                <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_summarizedCost złoty</div>
+                <div><MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointment.TotalMinutes minut</div>
+            </div> 
+            <MudButton OnClick="Cancel">Anuluj</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Zapisz</MudButton>
+        </DialogActions>
+    </MudDialog>
+</EditForm>
 
 @code {
-    [CascadingParameter] 
+    [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = null!;
 
-    private string _selectedCustomer = string.Empty;
     private string _offerSearchValue = string.Empty;
-    private TimeSpan? _hour = DateTime.Now.TimeOfDay;
-    private IEnumerable<IGrouping<string, OfferViewModel>> _offerViewModel = Enumerable.Empty<IGrouping<string, OfferViewModel>>();
-    private AppointmentViewModel _appointment = new AppointmentViewModel
-    {
-        Date = DateTime.Now
-    };
+    private AppointmentEditForm _appointment = new AppointmentEditForm();
+    private IEnumerable<OffersGroup> _offerGroups = Enumerable.Empty<OffersGroup>();
+    private decimal _summarizedCost = 0;
 
     protected override async Task OnInitializedAsync()
     {
-        _offerViewModel = await OfferDataService.GetOffers();
+        _appointment = await AppointmentDataService.Get();
+        _offerGroups = await OfferDataService.GetOffers();
+    }
+
+    private async Task OfferSelected(OfferViewModel selectedOffer, bool isSelected)
+    {
+        selectedOffer.IsSelected = isSelected;
+
+        if (_appointment.Offers.Any(o => o.Id == selectedOffer.Id))
+        {
+            _appointment.Offers.Remove(selectedOffer);
+        }
+        else
+        {
+            _appointment.Offers.Add(selectedOffer);
+        }
+
+        await UpdateSummarize();
+    }
+
+    private Task UpdateSummarize()
+    {
+        _summarizedCost = 0;
+        _appointment.TotalMinutes = 0;
+
+        foreach(var offer in _appointment.Offers)
+        {
+            _appointment.TotalMinutes += offer.TimeInMinutes;
+            _summarizedCost += offer.Price;
+        }
+
+        return Task.CompletedTask;
     }
 
     private async Task<IEnumerable<string>> SearchCustomer(string searchValue)
@@ -56,9 +122,47 @@
         return customerList;
     }
 
-    IEnumerable<IGrouping<string, OfferViewModel>> FilteredOffers => _offerViewModel.Where(
-            o => o.Key.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase)).ToList();
+    IEnumerable<OffersGroup> FilteredOffers => FilterOffers();
+    private IEnumerable<OffersGroup> FilterOffers()
+    {
+        var filteredOffers = new List<OffersGroup>();
 
-    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+        foreach(var group in _offerGroups)
+        {
+            if (group.OfferGroupName.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase))
+            {
+                filteredOffers.Add(new OffersGroup
+                {
+                    OfferGroupName = group.OfferGroupName,
+                    Offers = group.Offers
+                }); 
+            }
+            else
+            {
+                var offersToAdd = group.Offers.Where(o => o.Name.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase));
+                if (offersToAdd.Any())
+                {
+                    filteredOffers.Add(new OffersGroup
+                    {
+                        OfferGroupName = group.OfferGroupName,
+                        Offers = offersToAdd
+                    }); 
+                }  
+            }                                
+        }
+
+        return filteredOffers;
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        var result = await AppointmentDataService.Create(_appointment);
+
+        if (result)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+    }
+
     void Cancel() => MudDialog.Cancel();
 }

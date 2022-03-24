@@ -1,6 +1,6 @@
-﻿using CompanyManager.Shared;
+﻿using CompanyManager.Server.Services;
+using CompanyManager.Shared;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyManager.Server.Controllers
@@ -10,32 +10,37 @@ namespace CompanyManager.Server.Controllers
     [ApiController]
     public class AppointmentController : ControllerBase
     {
-        //[HttpPost]
-        //public  Create(AppointmentViewModel appointment)
-        //{
-        //    return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        //    {
-        //        Date = DateTime.Now.AddDays(index),
-        //        TemperatureC = Random.Shared.Next(-20, 55),
-        //        Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        //    })
-        //    .ToArray();
-        //}
-        public AppointmentController()
-        {
+        private IAppointmentService _appointmentService;
 
+        public AppointmentController(IAppointmentService appointmentService)
+        {
+            _appointmentService = appointmentService;
         }
 
-        //[HttpGet]
-        //public AppointmentViewModel Get()
-        //{
-        //    return new AppointmentViewModel
-        //    {
-        //        //Customer = new CustomerViewModel(),
-        //        Date = DateTime.Now,
-        //        Note = "lol notka",
-        //        Offer = new OfferViewModel()
-        //    };
-        //}
+        [HttpGet]
+        public async Task<IActionResult> Get(int? appointmentId)
+        {
+            var appointment = await _appointmentService.GetAppointment(appointmentId);
+            return Ok(appointment);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] AppointmentEditForm appointment)
+        {
+            if (appointment == null || ModelState.IsValid == false)
+            {
+                return BadRequest();
+            }
+            
+            if(await _appointmentService.CheckForConflicts(appointment))
+            {
+                ModelState.AddModelError("DateConflict", "Czas trwania wizyty pokrywa się z czasem innej wizyty.");
+                return BadRequest();
+            }
+
+            var result = await _appointmentService.CreateAppointment(appointment);
+
+            return result ? Ok() : BadRequest();
+        }
     }
 }

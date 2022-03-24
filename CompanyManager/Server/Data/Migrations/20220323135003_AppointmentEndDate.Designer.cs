@@ -4,6 +4,7 @@ using CompanyManager.Server.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CompanyManager.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220323135003_AppointmentEndDate")]
+    partial class AppointmentEndDate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,21 +23,6 @@ namespace CompanyManager.Server.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("AppointmentOffer", b =>
-                {
-                    b.Property<int>("AppointmentsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("OffersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AppointmentsId", "OffersId");
-
-                    b.HasIndex("OffersId");
-
-                    b.ToTable("AppointmentOffer");
-                });
 
             modelBuilder.Entity("CompanyManager.Server.Models.ApplicationUser", b =>
                 {
@@ -119,6 +106,9 @@ namespace CompanyManager.Server.Data.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("OfferId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -128,6 +118,8 @@ namespace CompanyManager.Server.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CustomerId");
+
+                    b.HasIndex("OfferId");
 
                     b.ToTable("Appointments");
                 });
@@ -804,21 +796,6 @@ namespace CompanyManager.Server.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("AppointmentOffer", b =>
-                {
-                    b.HasOne("CompanyManager.Server.Models.Appointment", null)
-                        .WithMany()
-                        .HasForeignKey("AppointmentsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("CompanyManager.Server.Models.Offer", null)
-                        .WithMany()
-                        .HasForeignKey("OffersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("CompanyManager.Server.Models.Appointment", b =>
                 {
                     b.HasOne("CompanyManager.Server.Models.Customer", "Customer")
@@ -827,7 +804,13 @@ namespace CompanyManager.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CompanyManager.Server.Models.Offer", "Offer")
+                        .WithMany("Appointments")
+                        .HasForeignKey("OfferId");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("Offer");
                 });
 
             modelBuilder.Entity("CompanyManager.Server.Models.Consent", b =>
@@ -931,6 +914,11 @@ namespace CompanyManager.Server.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Photos");
+                });
+
+            modelBuilder.Entity("CompanyManager.Server.Models.Offer", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 
             modelBuilder.Entity("CompanyManager.Server.Models.OfferCategory", b =>

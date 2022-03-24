@@ -7,8 +7,9 @@ namespace CompanyManager.Server.Repositories
     public interface ICustomerRepository
     {
         Task<Customer> AddCustomer(Customer customer);
-        Task<List<Customer>> SearchCustomersByName(string searchValue);
-        Task<List<Customer>> SearchCustomersByPhone(string phoneNumber);
+        Task<List<Customer>> GetCustomersByName(string searchValue);
+        Task<List<Customer>> GetCustomersByPhone(string phoneNumber);
+        Task<Customer?> GetCustomerByPhone(string phoneNumber);
     }
 
     public class CustomerRepository : ICustomerRepository
@@ -20,18 +21,22 @@ namespace CompanyManager.Server.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<List<Customer>> SearchCustomersByName(string searchValue)
-        {           
-            var customers = await _dbContext.Customers.
-                Where(c => c.Name.Contains(searchValue, StringComparison.CurrentCultureIgnoreCase) || c.Surname.Contains(searchValue, StringComparison.CurrentCultureIgnoreCase))
-                .OrderBy(c => c.Surname).Take(5).ToListAsync();           
+        public async Task<List<Customer>> GetCustomersByName(string searchValue)
+        {             
+            var customers = await _dbContext.Customers.Where(c => c.Name.Contains(searchValue) || c.Surname.Contains(searchValue)).OrderBy(c => c.Surname).Take(5).ToListAsync();           
             return customers;
         }
 
-        public async Task<List<Customer>> SearchCustomersByPhone(string phoneNumber)
+        public async Task<List<Customer>> GetCustomersByPhone(string phoneNumber)
         {            
             var customers = await _dbContext.Customers.Where(c => c.Phone.Contains(phoneNumber)).OrderBy(c => c.Surname).Take(5).ToListAsync();    
             return customers;
+        }
+
+        public Task<Customer?> GetCustomerByPhone(string phoneNumber)
+        {
+            var customer = _dbContext.Customers.SingleOrDefault(c => c.Phone == phoneNumber);
+            return Task.FromResult(customer);
         }
 
         public async Task<Customer> AddCustomer(Customer customer)

@@ -25,11 +25,6 @@ namespace CompanyManager.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Offer>()
-                .HasMany(o => o.Appointments)
-                .WithOne(a => a.Offer)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-
             modelBuilder.Entity<Appointment>()
                 .HasMany(a => a.Photos)
                 .WithOne(p => p.Appointment)

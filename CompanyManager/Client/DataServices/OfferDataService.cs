@@ -5,7 +5,7 @@ namespace CompanyManager.Client.DataServices
 {
     public interface IOfferDataService
     {
-        Task<IEnumerable<IGrouping<string, OfferViewModel>>> GetOffers();
+        Task<IEnumerable<OffersGroup>> GetOffers();
     }
 
     public class OfferDataService : IOfferDataService
@@ -17,10 +17,10 @@ namespace CompanyManager.Client.DataServices
             _http = http;
         }
 
-        public async Task<IEnumerable<IGrouping<string, OfferViewModel>>> GetOffers()
+        public async Task<IEnumerable<OffersGroup>> GetOffers()
         {
-            var response = await _http.GetFromJsonAsync<IEnumerable<IGrouping<string, OfferViewModel>>>("Offer");
-            return response ?? Enumerable.Empty<IGrouping<string, OfferViewModel>>();
+            var response = await _http.GetFromJsonAsync<IEnumerable<OffersGroup>>("Offer");
+            return response ?? Enumerable.Empty<OffersGroup>();
         }
     }
 }
