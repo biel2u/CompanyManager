@@ -5,13 +5,12 @@ namespace CompanyManager.Shared
     public class AppointmentEditForm
     {
         [Required(ErrorMessage = "Należy podać datę.")]
-        public DateTime? StartDate { get; set; }
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
 
         [Required(ErrorMessage = "Należy podać godzinę.")]
-        public TimeSpan? Time { get; set; }
-
-        [Range(5, int.MaxValue, ErrorMessage = "Minimalny czas wizyty wynosi 5 minut.")]
-        public int TotalMinutes { get; set; }
+        public TimeSpan Time { get; set; }
 
         [Required(ErrorMessage = "Należy wybrać klienta.")]
         public string CustomerNameAndPhone { get; set; } = string.Empty;

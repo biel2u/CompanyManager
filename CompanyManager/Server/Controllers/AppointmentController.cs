@@ -29,18 +29,18 @@ namespace CompanyManager.Server.Controllers
         {
             if (appointment == null || ModelState.IsValid == false)
             {
-                return BadRequest();
+                return BadRequest(ModelState);
             }
             
             if(await _appointmentService.CheckForConflicts(appointment))
             {
                 ModelState.AddModelError("DateConflict", "Czas trwania wizyty pokrywa się z czasem innej wizyty.");
-                return BadRequest();
+                return BadRequest(ModelState);
             }
 
             var result = await _appointmentService.CreateAppointment(appointment);
 
-            return result ? Ok() : BadRequest();
+            return result ? Ok(ModelState) : BadRequest(ModelState);
         }
     }
 }

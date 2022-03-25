@@ -1,25 +1,25 @@
 ﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Client.Helpers
 @using CompanyManager.Shared
+@using System.Net
 @inject ICustomerDataService CustomerDataService
 @inject IAppointmentDataService AppointmentDataService; 
 @inject IOfferDataService OfferDataService;
+@inject ISnackbar Snackbar
 
 <EditForm Model="@_appointment" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator/>
+    <CustomValidation @ref="_customValidation" />
     <MudDialog>
         <DialogContent>
+            <ValidationSummary />
             <div class="content-wrapper">
-                <div>
-                    <MudDatePicker Label="Data*" @bind-Date="_appointment.StartDate"/>
-                    <ValidationMessage For="() => _appointment.StartDate"/>
-
-                    <MudTimePicker Label="Godzina*" @bind-Time="_appointment.Time" />
-                    <ValidationMessage For="() => _appointment.Time"/>
-
+                <div class="base-data-wrapper">
+                    <MudDatePicker Label="Data*" Date="@_appointmentDate" DateChanged="@UpdateStartDate"/>
+                    <MudTimePicker Label="Godzina*" Time="@_appointmentTime" TimeChanged="@UpdateTime" />
                     <MudAutocomplete T="string" Label="Klient*" @bind-Value="_appointment.CustomerNameAndPhone" 
                         SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
-                    <ValidationMessage For="() => _appointment.CustomerNameAndPhone"/>
-
+                    <a href="/user" target="_blank"><MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton></a>
                     <MudTextField T="string" Label="Notatka" Variant="Variant.Text" @bind-Value="_appointment.Note" Lines="5" />
                     <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="_appointment.Confirmed" Color="Color.Primary" Size="Size.Small" />
                 </div>
@@ -38,9 +38,8 @@
                             }
                         }
                     </div>  
-                    <ValidationMessage For="() => _appointment.Offers"/>
                 </div>
-                <div class="summary">
+                <div class="offers-summary">
                     <h6>Podsumowanie</h6>
                     <div class="selected-offers">
                         @foreach(var offer in _appointment.Offers)
@@ -56,14 +55,15 @@
                             </MudGrid>
                         }
                     </div>
-                    <ValidationSummary />
                 </div>
             </div>
         </DialogContent>
         <DialogActions >
-            <div class="price-summarize">
+            <div class="appointment-summary">
                 <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_summarizedCost złoty</div>
-                <div><MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointment.TotalMinutes minut</div>
+                <div>
+                    <MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointment.StartDate.ToString("HH:mm") - @_appointment.EndDate.ToString("HH:mm")
+                </div>
             </div> 
             <MudButton OnClick="Cancel">Anuluj</MudButton>
             <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Zapisz</MudButton>
@@ -74,15 +74,21 @@
 @code {
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = null!;
-
+    private CustomValidation? _customValidation;
     private string _offerSearchValue = string.Empty;
     private AppointmentEditForm _appointment = new AppointmentEditForm();
     private IEnumerable<OffersGroup> _offerGroups = Enumerable.Empty<OffersGroup>();
     private decimal _summarizedCost = 0;
+    private int _summarizedTime = 0;
+    private DateTime? _appointmentDate;
+    private TimeSpan? _appointmentTime;
 
     protected override async Task OnInitializedAsync()
     {
         _appointment = await AppointmentDataService.Get();
+        _appointmentDate = _appointment.StartDate;
+        _appointmentTime = _appointment.Time;
+
         _offerGroups = await OfferDataService.GetOffers();
     }
 
@@ -102,16 +108,36 @@
         await UpdateSummarize();
     }
 
-    private Task UpdateSummarize()
+    private async Task UpdateSummarize()
     {
         _summarizedCost = 0;
-        _appointment.TotalMinutes = 0;
+        _summarizedTime = 0;
 
         foreach(var offer in _appointment.Offers)
         {
-            _appointment.TotalMinutes += offer.TimeInMinutes;
+            _summarizedTime += offer.TimeInMinutes;
             _summarizedCost += offer.Price;
         }
+
+        await UpdateAppointmentDates();
+    }
+
+    private async Task UpdateStartDate(DateTime? newDate)
+    {
+        _appointmentDate = newDate;
+        await UpdateAppointmentDates();
+    }
+
+    private async Task UpdateTime(TimeSpan? newTime)
+    {
+        _appointmentTime = newTime;
+        await UpdateAppointmentDates();
+    }
+
+    private Task UpdateAppointmentDates()
+    {
+        _appointment.StartDate = (_appointmentDate + _appointmentTime) ?? DateTime.Now;
+        _appointment.EndDate = _appointment.StartDate.AddMinutes(_summarizedTime);
 
         return Task.CompletedTask;
     }
@@ -156,10 +182,16 @@
 
     private async Task HandleValidSubmit()
     {
-        var result = await AppointmentDataService.Create(_appointment);
+        var response = await AppointmentDataService.Create(_appointment);
 
-        if (result)
+        var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
+        if (response.StatusCode == HttpStatusCode.BadRequest && errors != null && errors.Any())
         {
+            _customValidation?.DisplayErrors(errors);
+        }
+        else if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Wizyta została zapisana.", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
     }

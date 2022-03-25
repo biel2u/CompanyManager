@@ -6,7 +6,7 @@ namespace CompanyManager.Client.DataServices
     public interface IAppointmentDataService
     {
         Task<AppointmentEditForm> Get();
-        Task<bool> Create(AppointmentEditForm appointment);
+        Task<HttpResponseMessage> Create(AppointmentEditForm appointment);
     }
 
     public class AppointmentDataService : IAppointmentDataService
@@ -25,10 +25,10 @@ namespace CompanyManager.Client.DataServices
             return response ?? new AppointmentEditForm();          
         }
 
-        public async Task<bool> Create(AppointmentEditForm appointment)
+        public async Task<HttpResponseMessage> Create(AppointmentEditForm appointment)
         {
-            var resposne = await _http.PostAsJsonAsync(ControllerName, appointment);
-            return resposne.IsSuccessStatusCode;
+            var resposne = await _http.PostAsJsonAsync(ControllerName, appointment);          
+            return resposne;
         }
     }
 }

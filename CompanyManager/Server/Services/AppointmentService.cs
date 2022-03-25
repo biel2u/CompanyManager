@@ -51,12 +51,7 @@ namespace CompanyManager.Server.Services
 
         public async Task<bool> CheckForConflicts(AppointmentEditForm appointment)
         {
-            if (appointment.StartDate == null || appointment.Time == null) return true;
-
-            var startDateTime = appointment.StartDate.Value + appointment.Time.Value;
-            var appointmentEndDate = GetAppointmentEndDateTime(startDateTime, appointment.TotalMinutes);
-            var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRange(appointment.StartDate.Value, appointmentEndDate);
-
+            var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRange(appointment.StartDate, appointment.EndDate);
             return appointmentsInRange.Any();
         }
 
@@ -64,17 +59,15 @@ namespace CompanyManager.Server.Services
         {
             var customer = await _customerService.GetCustomerByExtractedPhoneNumber(appointment.CustomerNameAndPhone);
 
-            if (appointment.StartDate == null || appointment.Time == null || customer == null) return false;
+            if (customer == null) return false;
 
-            var startDateTime = appointment.StartDate.Value + appointment.Time.Value;
-            var endDateTime = GetAppointmentEndDateTime(startDateTime, appointment.TotalMinutes);
             var offers = await _offerRepository.GetAllOffers();
             var selectedOffers = offers.Where(o => appointment.Offers.Any(ao => ao.Id == o.Id)).ToList();
 
             var newAppointment = new Appointment
             {
-                StartDate = startDateTime,
-                EndDate = endDateTime,
+                StartDate = appointment.StartDate,
+                EndDate = appointment.EndDate,
                 Note = appointment.Note,
                 Offers = selectedOffers,
                 Status = appointment.Confirmed ? AppointmentStatus.Confirmed : AppointmentStatus.Pending,
@@ -83,12 +76,6 @@ namespace CompanyManager.Server.Services
 
             var result = await _appointmentRepository.AddAppointment(newAppointment);
             return result;
-        }
-
-        private DateTime GetAppointmentEndDateTime(DateTime startDate, int totalMinutes)
-        {
-            var endDate = startDate.AddMinutes(totalMinutes);
-            return endDate;
         }
     }
 }
