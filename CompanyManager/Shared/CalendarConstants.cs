@@ -1,4 +1,4 @@
-﻿namespace CompanyManager.Client.Models
+﻿namespace CompanyManager.Shared
 {
     public static class CalendarConstants
     {

@@ -6,6 +6,7 @@
 @inject IAppointmentDataService AppointmentDataService; 
 @inject IOfferDataService OfferDataService;
 @inject ISnackbar Snackbar
+@inject IOfferSelector OfferSelector;
 
 <EditForm Model="@_appointment" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator/>
@@ -15,11 +16,11 @@
             <ValidationSummary />
             <div class="content-wrapper">
                 <div class="base-data-wrapper">
-                    <MudDatePicker Label="Data*" Date="@_appointmentDate" DateChanged="@UpdateStartDate"/>
+                    <MudDatePicker Label="Data*" Date="@SelectedDate" DateChanged="@UpdateStartDate"/>
                     <MudTimePicker Label="Godzina*" Time="@_appointmentTime" TimeChanged="@UpdateTime" />
                     <MudAutocomplete T="string" Label="Klient*" @bind-Value="_appointment.CustomerNameAndPhone" 
                         SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
-                    <a href="/user" target="_blank"><MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton></a>
+                    <a href="/customer" target="_blank"><MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton></a>
                     <MudTextField T="string" Label="Notatka" Variant="Variant.Text" @bind-Value="_appointment.Note" Lines="5" />
                     <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="_appointment.Confirmed" Color="Color.Primary" Size="Size.Small" />
                 </div>
@@ -74,36 +75,30 @@
 @code {
     [CascadingParameter]
     MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] 
+    public DateTime SelectedDate { get; set; }
+
     private CustomValidation? _customValidation;
     private string _offerSearchValue = string.Empty;
-    private AppointmentEditForm _appointment = new AppointmentEditForm();
+    private EditAppointmentModel _appointment = new EditAppointmentModel();
     private IEnumerable<OffersGroup> _offerGroups = Enumerable.Empty<OffersGroup>();
     private decimal _summarizedCost = 0;
     private int _summarizedTime = 0;
-    private DateTime? _appointmentDate;
     private TimeSpan? _appointmentTime;
 
     protected override async Task OnInitializedAsync()
     {
-        _appointment = await AppointmentDataService.Get();
-        _appointmentDate = _appointment.StartDate;
+        _appointment = await AppointmentDataService.GetAppointment();
         _appointmentTime = _appointment.Time;
 
         _offerGroups = await OfferDataService.GetOffers();
     }
 
-    private async Task OfferSelected(OfferViewModel selectedOffer, bool isSelected)
+    private async Task OfferSelected(DisplayOfferModel selectedOffer, bool isSelected)
     {
         selectedOffer.IsSelected = isSelected;
-
-        if (_appointment.Offers.Any(o => o.Id == selectedOffer.Id))
-        {
-            _appointment.Offers.Remove(selectedOffer);
-        }
-        else
-        {
-            _appointment.Offers.Add(selectedOffer);
-        }
+        _appointment.Offers = await OfferSelector.BuildSelectedOffersCollection(selectedOffer, _appointment.Offers);
 
         await UpdateSummarize();
     }
@@ -124,7 +119,7 @@
 
     private async Task UpdateStartDate(DateTime? newDate)
     {
-        _appointmentDate = newDate;
+        SelectedDate = newDate ?? DateTime.Now;
         await UpdateAppointmentDates();
     }
 
@@ -136,7 +131,7 @@
 
     private Task UpdateAppointmentDates()
     {
-        _appointment.StartDate = (_appointmentDate + _appointmentTime) ?? DateTime.Now;
+        _appointment.StartDate = (SelectedDate + _appointmentTime) ?? DateTime.Now;
         _appointment.EndDate = _appointment.StartDate.AddMinutes(_summarizedTime);
 
         return Task.CompletedTask;
@@ -148,43 +143,13 @@
         return customerList;
     }
 
-    IEnumerable<OffersGroup> FilteredOffers => FilterOffers();
-    private IEnumerable<OffersGroup> FilterOffers()
-    {
-        var filteredOffers = new List<OffersGroup>();
-
-        foreach(var group in _offerGroups)
-        {
-            if (group.OfferGroupName.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase))
-            {
-                filteredOffers.Add(new OffersGroup
-                {
-                    OfferGroupName = group.OfferGroupName,
-                    Offers = group.Offers
-                }); 
-            }
-            else
-            {
-                var offersToAdd = group.Offers.Where(o => o.Name.Contains(_offerSearchValue, StringComparison.CurrentCultureIgnoreCase));
-                if (offersToAdd.Any())
-                {
-                    filteredOffers.Add(new OffersGroup
-                    {
-                        OfferGroupName = group.OfferGroupName,
-                        Offers = offersToAdd
-                    }); 
-                }  
-            }                                
-        }
-
-        return filteredOffers;
-    }
+    IEnumerable<OffersGroup> FilteredOffers => OfferSelector.FilterOffers(_offerGroups, _offerSearchValue);
 
     private async Task HandleValidSubmit()
     {
-        var response = await AppointmentDataService.Create(_appointment);
-
+        var response = await AppointmentDataService.CreateAppointment(_appointment);
         var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
+
         if (response.StatusCode == HttpStatusCode.BadRequest && errors != null && errors.Any())
         {
             _customValidation?.DisplayErrors(errors);

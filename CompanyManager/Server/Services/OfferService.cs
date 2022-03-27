@@ -33,7 +33,7 @@ namespace CompanyManager.Server.Services
                 offersViewModel.Add(new OffersGroup
                 {
                     OfferGroupName = group.Key,
-                    Offers = _mapper.Map<IEnumerable<OfferViewModel>>(offersInGroup)
+                    Offers = _mapper.Map<IEnumerable<DisplayOfferModel>>(offersInGroup)
                 });
             }
 

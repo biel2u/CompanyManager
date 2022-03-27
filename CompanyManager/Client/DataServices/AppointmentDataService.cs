@@ -5,8 +5,8 @@ namespace CompanyManager.Client.DataServices
 {
     public interface IAppointmentDataService
     {
-        Task<AppointmentEditForm> Get();
-        Task<HttpResponseMessage> Create(AppointmentEditForm appointment);
+        Task<EditAppointmentModel> GetAppointment();
+        Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment);
     }
 
     public class AppointmentDataService : IAppointmentDataService
@@ -19,16 +19,23 @@ namespace CompanyManager.Client.DataServices
             _http = http;
         }
 
-        public async Task<AppointmentEditForm> Get()
+        public async Task<EditAppointmentModel> GetAppointment()
         {            
-            var response = await _http.GetFromJsonAsync<AppointmentEditForm>(ControllerName);
-            return response ?? new AppointmentEditForm();          
+            var response = await _http.GetFromJsonAsync<EditAppointmentModel>($"{ControllerName}/GetAppointment");
+            return response ?? new EditAppointmentModel();          
         }
 
-        public async Task<HttpResponseMessage> Create(AppointmentEditForm appointment)
+        public async Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment)
         {
-            var resposne = await _http.PostAsJsonAsync(ControllerName, appointment);          
+            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);          
             return resposne;
+        }
+
+        public async Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
+        {
+            var response = await _http.PostAsJsonAsync($"{ControllerName}/GetAppointmentsInRange", appointmentsRange);
+            var result = await response.Content.ReadFromJsonAsync<IEnumerable<DisplayAppointmentModel>>();
+            return result ?? Enumerable.Empty<DisplayAppointmentModel>();
         }
     }
 }

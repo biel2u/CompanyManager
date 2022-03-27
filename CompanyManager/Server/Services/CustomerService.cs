@@ -7,9 +7,10 @@ namespace CompanyManager.Server.Services
 {
     public interface ICustomerService
     {
-        Task<CustomerViewModel> AddCustomer(CustomerViewModel customerViewModel);
+        Task<EditCustomerModel> AddCustomer(EditCustomerModel customerViewModel);
         Task<List<string>> SearchCustomers(string searchValue);
         Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
+        Task<bool> IsPhoneNumberAlreadyExists(string phoneNumber);
     }
 
     public class CustomerService : ICustomerService
@@ -45,11 +46,11 @@ namespace CompanyManager.Server.Services
             return customersSearchResult;
         }
 
-        public async Task<CustomerViewModel> AddCustomer(CustomerViewModel customerViewModel)
+        public async Task<EditCustomerModel> AddCustomer(EditCustomerModel customerViewModel)
         {         
             var customerToCreate = _mapper.Map<Customer>(customerViewModel);
             var createdCustomer = await _customerRepository.AddCustomer(customerToCreate);
-            var newCustomer = _mapper.Map<CustomerViewModel>(createdCustomer);
+            var newCustomer = _mapper.Map<EditCustomerModel>(createdCustomer);
 
             return newCustomer;
         }
@@ -62,6 +63,12 @@ namespace CompanyManager.Server.Services
 
             var customer = await _customerRepository.GetCustomerByPhone(phoneNumber);
             return customer;
+        }
+
+        public async Task<bool> IsPhoneNumberAlreadyExists(string phoneNumber)
+        {
+            var customers = await _customerRepository.GetCustomersByPhone(phoneNumber);
+            return customers.Any();
         }
     }
 }

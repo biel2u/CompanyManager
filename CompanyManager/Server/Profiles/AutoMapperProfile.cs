@@ -8,8 +8,8 @@ namespace CompanyManager.Server.Profiles
     {
         public AutoMapperProfile()
         {
-            CreateMap<Customer, CustomerViewModel>().ReverseMap();
-            CreateMap<Offer, OfferViewModel>();
+            CreateMap<Customer, EditCustomerModel>().ReverseMap();
+            CreateMap<Offer, DisplayOfferModel>();
         }
     }
 }

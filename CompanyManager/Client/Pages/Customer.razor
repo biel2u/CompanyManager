@@ -1,0 +1,42 @@
+﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Client.Helpers
+@using CompanyManager.Shared
+@using System.Net
+@inject ISnackbar Snackbar
+@inject ICustomerDataService CustomerDataService
+
+@page "/customer"
+
+<EditForm Model="@_customer" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator/>
+    <CustomValidation @ref="_customValidation" />
+    <ValidationSummary />
+
+    <MudTextField @bind-Value="_customer.Name" Label="Imię" Variant="Variant.Text" />
+    <MudTextField @bind-Value="_customer.Surname" Label="Naziwsko" Variant="Variant.Text" />
+    <MudTextField @bind-Value="_customer.Phone" Label="Numer telefonu" Variant="Variant.Text" />
+    <MudTextField @bind-Value="_customer.Email" Label="Email" Variant="Variant.Text" />
+    <MudTextField @bind-Value="_customer.Note" Label="Notatka" Variant="Variant.Text" Lines="5" />
+
+    <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Zapisz</MudButton>
+</EditForm>
+
+@code {
+    private EditCustomerModel _customer = new EditCustomerModel();
+    private CustomValidation? _customValidation;
+
+    private async Task HandleValidSubmit()
+    {
+        var response = await CustomerDataService.Create(_customer);
+        var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
+
+        if (response.StatusCode == HttpStatusCode.BadRequest && errors != null && errors.Any())
+        {
+            _customValidation?.DisplayErrors(errors);
+        }
+        else if (response.IsSuccessStatusCode)
+        {
+            Snackbar.Add("Klient został zapisany.", Severity.Success);
+        }
+    }
+}

@@ -2,7 +2,7 @@
 
 namespace CompanyManager.Shared
 {
-    public class AppointmentEditForm
+    public class EditAppointmentModel
     {
         [Required(ErrorMessage = "Należy podać datę.")]
         public DateTime StartDate { get; set; }
@@ -20,6 +20,6 @@ namespace CompanyManager.Shared
         public bool Confirmed { get; set; }
 
         [MinLength(1, ErrorMessage = "Należy wybrać co najmniej jedną usługę.")]
-        public List<OfferViewModel> Offers { get; set; } = new List<OfferViewModel>();
+        public List<DisplayOfferModel> Offers { get; set; } = new List<DisplayOfferModel>();
     }
 }

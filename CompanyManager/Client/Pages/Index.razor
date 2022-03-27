@@ -5,27 +5,30 @@
 
 <div class="calendar-control-panel">
     <div class="calendar-controls">
-        <MudDatePicker PickerVariant="PickerVariant.Static" Date="@dateTimeSelected" DateChanged="OnDateChange" />
+        <MudDatePicker PickerVariant="PickerVariant.Static" Date="@_dateTimeSelected" DateChanged="OnDateChange" />
         <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" @onclick="OpenDialog">Dodaj +</MudButton>
     </div>
     <div class="calendar-wrapper">
-        <CalendarComponent @ref="calendarComponent" />
+        <CalendarComponent @ref="_calendarComponent" />
     </div>
 </div>
 
 @code {
-    private CalendarComponent calendarComponent = null!;
-    private DateTime dateTimeSelected = DateTime.Today;
+    private CalendarComponent _calendarComponent = null!;
+    private DateTime _dateTimeSelected = DateTime.Today;
 
     private async Task OnDateChange(DateTime? newDateTime)
     {
-        dateTimeSelected = newDateTime != null ? newDateTime.Value : dateTimeSelected;
-        await calendarComponent.SetCalendarForSelectedDate(dateTimeSelected);
+        _dateTimeSelected = newDateTime != null ? newDateTime.Value : _dateTimeSelected;
+        await _calendarComponent.SetCalendarForSelectedDate(_dateTimeSelected);
     }
 
     private void OpenDialog()
     {
-		var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
-        DialogService.Show<AddAppointmentModal>("Dodaj wizyte", options);
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedDate", _dateTimeSelected);
+
+        DialogService.Show<AddAppointmentModal>("Dodaj wizyte", parameters, options);
     }
 }

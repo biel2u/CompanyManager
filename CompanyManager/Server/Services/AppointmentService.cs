@@ -7,9 +7,10 @@ namespace CompanyManager.Server.Services
 {
     public interface IAppointmentService
     {
-        Task<AppointmentEditForm> GetAppointment(int? appointmentId);
-        Task<bool> CheckForConflicts(AppointmentEditForm appointment);
-        Task<bool> CreateAppointment(AppointmentEditForm appointment);
+        Task<EditAppointmentModel> GetAppointment(int? appointmentId);
+        Task<bool> CheckForConflicts(EditAppointmentModel appointment);
+        Task<bool> CreateAppointment(EditAppointmentModel appointment);
+        Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
     }
 
     public class AppointmentService : IAppointmentService
@@ -31,9 +32,9 @@ namespace CompanyManager.Server.Services
             _customerService = customeService;
         }
 
-        public async Task<AppointmentEditForm> GetAppointment(int? appointmentId)
+        public async Task<EditAppointmentModel> GetAppointment(int? appointmentId)
         {
-            var appointment = new AppointmentEditForm();
+            var appointment = new EditAppointmentModel();
             if (appointmentId.HasValue)
             {
                 //get existing
@@ -41,7 +42,7 @@ namespace CompanyManager.Server.Services
             else
             {
                 var dateTimeNow = _dateTimeProvider.GetCurrentDateTime();
-                appointment.Offers = new List<OfferViewModel>();
+                appointment.Offers = new List<DisplayOfferModel>();
                 appointment.StartDate = dateTimeNow.Date;
                 appointment.Time = dateTimeNow.TimeOfDay;
             }
@@ -49,13 +50,45 @@ namespace CompanyManager.Server.Services
             return appointment;
         }
 
-        public async Task<bool> CheckForConflicts(AppointmentEditForm appointment)
+        public async Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
+        {
+            var appointments = await _appointmentRepository.GetAppointmentsInRange(appointmentsRange.StartDate, appointmentsRange.EndDate);
+            var appointmentsToDisplay = new List<DisplayAppointmentModel>();
+            
+            foreach (var appointment in appointments)
+            {
+                appointmentsToDisplay.Add(new DisplayAppointmentModel
+                {
+                    Id = appointment.Id,
+                    ClientName = appointment.Customer.Name,
+                    OfferName = appointment.Offers.First().Name,
+                    OffersCount = appointment.Offers.Count(),
+                    StartDate = appointment.StartDate,
+                    EndDate = appointment.EndDate,
+                    StartRow = CalculateAppointmentDisplayRow(appointment.StartDate),
+                    EndRow = CalculateAppointmentDisplayRow(appointment.EndDate)
+                });
+            }
+
+            return appointmentsToDisplay;
+        }
+
+        private int CalculateAppointmentDisplayRow(DateTime dateTime)
+        {
+            var hourRow = CalendarConstants.GridHourRows * dateTime.Hour;
+            var minuteRow = dateTime.Minute / CalendarConstants.MinutesSampling;
+            var row = hourRow + minuteRow;
+
+            return row;
+        }
+
+        public async Task<bool> CheckForConflicts(EditAppointmentModel appointment)
         {
             var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRange(appointment.StartDate, appointment.EndDate);
             return appointmentsInRange.Any();
         }
 
-        public async Task<bool> CreateAppointment(AppointmentEditForm appointment)
+        public async Task<bool> CreateAppointment(EditAppointmentModel appointment)
         {
             var customer = await _customerService.GetCustomerByExtractedPhoneNumber(appointment.CustomerNameAndPhone);
 

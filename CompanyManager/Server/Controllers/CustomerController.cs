@@ -25,12 +25,17 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<CustomerViewModel>> CreateCustomer([FromBody] CustomerViewModel customer)
+        public async Task<ActionResult<EditCustomerModel>> CreateCustomer([FromBody] EditCustomerModel customer)
         {
             if (!ModelState.IsValid || customer == null) return BadRequest(ModelState);
+            if(await _customerService.IsPhoneNumberAlreadyExists(customer.Phone))
+            {
+                ModelState.AddModelError("PhoneNumberError", "Klient o podanym numerze telefonu już istnieje.");
+                return BadRequest(ModelState);
+            }
 
-            var newCustomer = await _customerService.AddCustomer(customer); //add model validation
-            return Created(nameof(CustomerViewModel), newCustomer);
+            await _customerService.AddCustomer(customer);
+            return Ok(ModelState);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿@using CompanyManager.Client.Helpers
 @using CompanyManager.Client.Models
+@using CompanyManager.Shared
 @using System.Timers
 @inject IJSRuntime JSRuntime;
 @inject ICalendar Calendar;
@@ -12,8 +13,8 @@
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" @onclick="CurrentWeek">Dziś</MudButton>
         </div>
         <div>
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Default" @onclick="PreviousWeek"><span class="oi oi-arrow-left"></span></MudButton>
-            <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Default" @onclick="NextWeek"><span class="oi oi-arrow-right"></span></MudButton>
+            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Default" @onclick="PreviousWeek"><span class="oi oi-arrow-left"></span></MudButton>
+            <MudButton Variant="Variant.Text" Size="Size.Small" Color="Color.Default" @onclick="NextWeek"><span class="oi oi-arrow-right"></span></MudButton>
         </div>
 
     </div>
@@ -72,11 +73,8 @@
     protected override async Task OnInitializedAsync()
     {
         _currentDayOfWeek = await Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
-        var buildCalendarDatesTask = Task.Run(() => Calendar.BuildCalendarDates(_currentDayOfWeek));
-        var buildCalendarTimesTask = Task.Run(() => Calendar.BuildCalendarTimes());
-
-        _calendarDates = await buildCalendarDatesTask;
-        _calendarTimes = await buildCalendarTimesTask;
+        _calendarDates = await Calendar.BuildCalendarDates(_currentDayOfWeek);
+        _calendarTimes = await Calendar.BuildCalendarTimes();
 
         SetTimer();
         _shouldScrollToCurrentTime = true;

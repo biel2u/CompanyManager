@@ -1,4 +1,4 @@
-﻿namespace CompanyManager.Shared
+﻿namespace CompanyManager.Server.Models
 {
     public enum AppointmentStatus
     {

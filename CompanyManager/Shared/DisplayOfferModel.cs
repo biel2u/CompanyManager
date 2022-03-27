@@ -1,6 +1,6 @@
 ﻿namespace CompanyManager.Shared
 {
-    public class OfferViewModel
+    public class DisplayOfferModel
     {
         public int Id { get; set; }
 

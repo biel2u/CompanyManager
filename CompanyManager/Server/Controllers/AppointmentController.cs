@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CompanyManager.Server.Controllers
 {
     [Authorize]
-    [Route("[controller]")]
+    [Route("[controller]/[action]")]
     [ApiController]
     public class AppointmentController : ControllerBase
     {
@@ -18,14 +18,21 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get(int? appointmentId)
+        public async Task<IActionResult> GetAppointment(int? appointmentId)
         {
             var appointment = await _appointmentService.GetAppointment(appointmentId);
             return Ok(appointment);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] AppointmentEditForm appointment)
+        public async Task<IActionResult> GetAppointmentsInRange([FromBody] AppointmentsRange appointmentsRange)
+        {
+            var appointments = await _appointmentService.GetAppointmentsInRange(appointmentsRange);
+            return Ok(appointments);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAppointment([FromBody] EditAppointmentModel appointment)
         {
             if (appointment == null || ModelState.IsValid == false)
             {

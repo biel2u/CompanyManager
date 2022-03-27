@@ -1,4 +1,5 @@
 ﻿using CompanyManager.Client.Models;
+using CompanyManager.Shared;
 
 namespace CompanyManager.Client.Helpers
 {

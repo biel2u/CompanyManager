@@ -1,14 +1,17 @@
-﻿using System.Net.Http.Json;
+﻿using CompanyManager.Shared;
+using System.Net.Http.Json;
 
 namespace CompanyManager.Client.DataServices
 {
     public interface ICustomerDataService
     {
         Task<List<string>> SearchCustomers(string searchValue);
+        Task<HttpResponseMessage> Create(EditCustomerModel customer);
     }
     public class CustomerDataService : ICustomerDataService
     {
         private readonly HttpClient _http;
+        private readonly string ControllerName = "Customer";
 
         public CustomerDataService(HttpClient http)
         {
@@ -19,8 +22,14 @@ namespace CompanyManager.Client.DataServices
         {
             if (searchValue.Length < 2) return new List<string>();
 
-            var response = await _http.GetFromJsonAsync<List<string>>($"Customer/SearchCustomers?searchValue={searchValue}");           
+            var response = await _http.GetFromJsonAsync<List<string>>($"{ControllerName}/SearchCustomers?searchValue={searchValue}");           
             return response ?? new List<string>();          
+        }
+
+        public async Task<HttpResponseMessage> Create(EditCustomerModel customer)
+        {
+            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateCustomer", customer);
+            return resposne;
         }
     }
 }
