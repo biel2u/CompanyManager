@@ -1,10 +1,12 @@
-﻿@using CompanyManager.Client.Helpers
+﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Client.Helpers
 @using CompanyManager.Client.Models
 @using CompanyManager.Shared
 @using System.Timers
 @inject IJSRuntime JSRuntime;
 @inject ICalendar Calendar;
 @inject ICalendarControls CalendarControls;
+@inject IAppointmentDataService AppointmentDataService;
 @implements IDisposable;
 
 <div class="calendar-days">
@@ -39,31 +41,34 @@
     <div class="calendar-hours" style="grid-template-rows: repeat(@CalendarConstants.GridTotalRows, 1fr);">
         @if(_selectedWeek == 0)
         {
-           <div class="current-day" style="grid-area: 1 / @(_currentDayOfWeek + CalendarConstants.TimeRowStart + 1)  / @CalendarConstants.GridTotalRows / @(_currentDayOfWeek + CalendarConstants.TimeRowStart + 2);"></div> 
+           <div class="current-day" style="grid-area: 1 / @(_currentDayOfWeek + CalendarConstants.CalendarAreaStartColumn) / @CalendarConstants.GridTotalRows / @(_currentDayOfWeek + CalendarConstants.CalendarAreaStartColumn);"></div> 
         }
         
         @foreach(var time in _calendarTimes)
         {
             if(time.IsCurrentTime)
             {
-                <div class="hour current-hour" id="current-hour" style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 9;">
+                <div class="current-hour" id="current-hour" style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 9;">
                     @time.Hour
                 </div>
                 <div class="current-minute" style="grid-area: @(time.MinuteRow) / 1 / @(time.MinuteRow) / 9;"></div>
             }
             else
             {
-                <div class="hour" style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 2;">
+                <div style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 2;">
                     @time.Hour
                 </div> 
             } 
         }
+
+        <AppointmentCards Appointments=_appointments/>
     </div>
 </div>
 
 @code {
     private List<CalendarDate> _calendarDates = new List<CalendarDate>();
     private List<CalendarTime> _calendarTimes = new List<CalendarTime>();
+    private List<DisplayAppointmentModel> _appointments = new List<DisplayAppointmentModel>();
     private Timer _timer { get; } = new Timer { Interval = 60000 };
     private DateTime _selectedDate = DateTime.Now;
     private bool _shouldScrollToCurrentTime = false;
@@ -78,6 +83,8 @@
 
         SetTimer();
         _shouldScrollToCurrentTime = true;
+
+        await GetAppointmentsForSelectedWeek();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -94,26 +101,50 @@
         var calendarWeek = await CalendarControls.SetCalendarForSelectedWeek(_calendarDates, selectedDateTime, _currentDayOfWeek);
         _calendarDates = calendarWeek.CalendarDates;
         _selectedWeek = calendarWeek.SelectedWeek;
+        await GetAppointmentsForSelectedWeek();
 
         StateHasChanged();
+    }
+
+    public async Task RefreshCalendar()
+    {
+        await GetAppointmentsForSelectedWeek();
+        StateHasChanged();
+    }
+
+    private async Task GetAppointmentsForSelectedWeek()
+    {
+        _appointments = await AppointmentDataService.GetAppointmentsInRange(new AppointmentsRange
+        {
+            StartDate = _calendarDates.First().Date, 
+            EndDate = _calendarDates.Last().Date
+        });
+
+        foreach(var appointment in _appointments)
+        {
+            appointment.DayOfWeek = await Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(appointment.StartDate);
+        }
     }
 
     private async Task NextWeek()
     {
         _selectedWeek++;
         _calendarDates = await CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, true, _currentDayOfWeek);
+        await GetAppointmentsForSelectedWeek();
     }
 
     private async Task PreviousWeek()
     {
         _selectedWeek--;
         _calendarDates = await CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, false, _currentDayOfWeek);
+        await GetAppointmentsForSelectedWeek();
     }
 
     private async Task CurrentWeek()
     {        
         _selectedWeek = 0;
         _calendarDates = await CalendarControls.SetCurrentWeek(_calendarDates, _currentDayOfWeek);
+        await GetAppointmentsForSelectedWeek();
     }
 
     private void SetTimer()

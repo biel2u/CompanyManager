@@ -1,0 +1,57 @@
+﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Shared
+@inject IDialogService DialogService
+@inject IAppointmentDataService AppointmentDataService
+@inject ISnackbar Snackbar
+
+@foreach(var appointment in Appointments)
+{
+    <div class="appointment-card-wrapper" style="grid-area: @(appointment.StartRow) / @(appointment.DayOfWeek + CalendarConstants.CalendarAreaStartColumn) / @(appointment.EndRow) / @(appointment.DayOfWeek + CalendarConstants.CalendarAreaStartColumn);">
+        <MudMenu PositionAtCursor="true" Style="width: 100%; height: 100%">
+            <ActivatorContent>
+                <div class="appointment-card">
+                    <div>@appointment.StartDate.ToString("HH:mm") - @appointment.EndDate.ToString("HH:mm")</div>
+                    <div><b>@appointment.ClientName</b></div>
+                    <div>
+                        @appointment.OfferName
+                        @if(appointment.OffersCount > 1)
+                        {
+                            <span class="multiple-offers"> +@(appointment.OffersCount - 1)</span>
+                        }
+                    </div>
+                </div>
+            </ActivatorContent>
+            <ChildContent>
+                <MudMenuItem>Edytuj</MudMenuItem>
+                <MudMenuItem @onclick="() => DeleteAppointment(appointment)"><span class="delete">Usuń</span></MudMenuItem>              
+            </ChildContent>
+        </MudMenu>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<DisplayAppointmentModel> Appointments { get; set; } = new List<DisplayAppointmentModel>();
+
+    private async Task DeleteAppointment(DisplayAppointmentModel appointment)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true};
+        var parameters = new DialogParameters();
+        var formattedAppointmentDate = appointment.StartDate.ToString("dd/MM HH:mm");
+        parameters.Add("DialogContent", $"Czy na pewno chcesz usunąć wizytę z dnia {formattedAppointmentDate} dla {appointment.ClientName}?");
+
+        var dialog = DialogService.Show<DeleteConfirmationDialog>("Usuń wizytę", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled == false)
+        {
+            var response = await AppointmentDataService.DeleteAppointment(appointment.Id);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Pomyślnie usunięto wizytę.", Severity.Normal);
+                Appointments.Remove(appointment); 
+            } 
+        }      
+    }
+}

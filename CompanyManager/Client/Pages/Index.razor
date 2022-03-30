@@ -23,12 +23,18 @@
         await _calendarComponent.SetCalendarForSelectedDate(_dateTimeSelected);
     }
 
-    private void OpenDialog()
+    private async Task OpenDialog()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
         var parameters = new DialogParameters();
         parameters.Add("SelectedDate", _dateTimeSelected);
 
-        DialogService.Show<AddAppointmentModal>("Dodaj wizyte", parameters, options);
+        var dialog = DialogService.Show<AddAppointmentModal>("Dodaj wizyte", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled == false)
+        {
+            await _calendarComponent.RefreshCalendar();
+        }
     }
 }

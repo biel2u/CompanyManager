@@ -1,0 +1,27 @@
+﻿.appointment-card {
+    font-size: 11px;
+    background-color: #FFD54F;
+    padding: 0.2rem;
+    box-shadow: 1px 1px 15px rgb(0 0 0 / 10%);
+    width: 100%;
+    height: 100%;
+    overflow-y: scroll;
+}
+
+.appointment-card-wrapper {
+    margin: 0 0.1rem;
+}
+
+.mud-menu {
+    width: 100%;
+    height: 100%;
+}
+
+.delete {
+    color: orangered;
+}
+
+.multiple-offers {
+    font-weight: bold;
+
+}

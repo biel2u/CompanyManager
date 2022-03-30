@@ -7,6 +7,8 @@ namespace CompanyManager.Client.DataServices
     {
         Task<EditAppointmentModel> GetAppointment();
         Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment);
+        Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
+        Task<HttpResponseMessage> DeleteAppointment(int id);
     }
 
     public class AppointmentDataService : IAppointmentDataService
@@ -31,11 +33,17 @@ namespace CompanyManager.Client.DataServices
             return resposne;
         }
 
-        public async Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
+        public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
         {
             var response = await _http.PostAsJsonAsync($"{ControllerName}/GetAppointmentsInRange", appointmentsRange);
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<DisplayAppointmentModel>>();
-            return result ?? Enumerable.Empty<DisplayAppointmentModel>();
+            var result = await response.Content.ReadFromJsonAsync<List<DisplayAppointmentModel>>();
+            return result ?? new List<DisplayAppointmentModel>();
+        }
+
+        public async Task<HttpResponseMessage> DeleteAppointment(int id)
+        {
+            var resposne = await _http.DeleteAsync($"{ControllerName}/DeleteAppointment?id={id}");
+            return resposne;
         }
     }
 }

@@ -39,15 +39,30 @@ namespace CompanyManager.Server.Controllers
                 return BadRequest(ModelState);
             }
             
-            if(await _appointmentService.CheckForConflicts(appointment))
+            var errors = await _appointmentService.ValidateAppointment(appointment);
+
+            foreach(var error in errors)
             {
-                ModelState.AddModelError("DateConflict", "Czas trwania wizyty pokrywa się z czasem innej wizyty.");
+                ModelState.AddModelError(error.Key, error.Value);
+            }
+
+            if(errors.Any())
+            {
                 return BadRequest(ModelState);
             }
 
             var result = await _appointmentService.CreateAppointment(appointment);
 
             return result ? Ok(ModelState) : BadRequest(ModelState);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAppointment(int id)
+        {
+            var appointmentDeleted = await _appointmentService.DeleteAppointment(id);
+            if (appointmentDeleted == false) return NotFound();
+
+            return NoContent();
         }
     }
 }

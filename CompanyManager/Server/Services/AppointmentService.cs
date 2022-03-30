@@ -8,9 +8,10 @@ namespace CompanyManager.Server.Services
     public interface IAppointmentService
     {
         Task<EditAppointmentModel> GetAppointment(int? appointmentId);
-        Task<bool> CheckForConflicts(EditAppointmentModel appointment);
+        Task<Dictionary<string, string>> ValidateAppointment(EditAppointmentModel appointment);
         Task<bool> CreateAppointment(EditAppointmentModel appointment);
-        Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
+        Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
+        Task<bool> DeleteAppointment(int id);
     }
 
     public class AppointmentService : IAppointmentService
@@ -50,9 +51,9 @@ namespace CompanyManager.Server.Services
             return appointment;
         }
 
-        public async Task<IEnumerable<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
+        public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
         {
-            var appointments = await _appointmentRepository.GetAppointmentsInRange(appointmentsRange.StartDate, appointmentsRange.EndDate);
+            var appointments = await _appointmentRepository.GetAppointmentsInRangeDailyAccuracy(appointmentsRange.StartDate.Date, appointmentsRange.EndDate.Date);
             var appointmentsToDisplay = new List<DisplayAppointmentModel>();
             
             foreach (var appointment in appointments)
@@ -60,7 +61,7 @@ namespace CompanyManager.Server.Services
                 appointmentsToDisplay.Add(new DisplayAppointmentModel
                 {
                     Id = appointment.Id,
-                    ClientName = appointment.Customer.Name,
+                    ClientName = $"{appointment.Customer.Name} {appointment.Customer.Surname}",
                     OfferName = appointment.Offers.First().Name,
                     OffersCount = appointment.Offers.Count(),
                     StartDate = appointment.StartDate,
@@ -75,17 +76,29 @@ namespace CompanyManager.Server.Services
 
         private int CalculateAppointmentDisplayRow(DateTime dateTime)
         {
-            var hourRow = CalendarConstants.GridHourRows * dateTime.Hour;
+            var hourRow = (CalendarConstants.GridHourRows * dateTime.Hour) + CalendarConstants.InitialTimeRow;
             var minuteRow = dateTime.Minute / CalendarConstants.MinutesSampling;
             var row = hourRow + minuteRow;
 
             return row;
         }
 
-        public async Task<bool> CheckForConflicts(EditAppointmentModel appointment)
+        public async Task<Dictionary<string,string>> ValidateAppointment(EditAppointmentModel appointment)
         {
-            var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRange(appointment.StartDate, appointment.EndDate);
-            return appointmentsInRange.Any();
+            var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRangeHourlyAccuracy(appointment.StartDate, appointment.EndDate);
+            var errors = new Dictionary<string, string>();
+
+            if (appointmentsInRange.Any())
+            {
+                errors.Add("DateConflict", "Czas trwania wizyty pokrywa się z czasem innej wizyty.");
+            }
+
+            if(appointment.StartDate.Day != appointment.EndDate.Day)
+            {
+                errors.Add("TimeExceeded", "Wizyta nie może być rozłożona na dwa dni.");
+            }
+
+            return errors;
         }
 
         public async Task<bool> CreateAppointment(EditAppointmentModel appointment)
@@ -108,6 +121,12 @@ namespace CompanyManager.Server.Services
             };
 
             var result = await _appointmentRepository.AddAppointment(newAppointment);
+            return result;
+        }
+
+        public async Task<bool> DeleteAppointment(int id)
+        {
+            var result = await _appointmentRepository.DeleteAppointment(id);
             return result;
         }
     }

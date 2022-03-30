@@ -63,7 +63,7 @@ namespace CompanyManager.Client.Helpers
                 calendarTimes.Add(new CalendarTime
                 {
                     Hour = $"{hour}:00",
-                    HourRow = i + CalendarConstants.TimeRowStart,
+                    HourRow = i + CalendarConstants.InitialTimeRow,
                     IsCurrentTime = i == currentHourRow
                 });
             }
@@ -82,7 +82,7 @@ namespace CompanyManager.Client.Helpers
         public Task<List<CalendarTime>> SetCurrentHourAndMinuteRow(List<CalendarTime> calendarTimes)
         {
             var dateTimeNow = DateTime.Now;
-            var currentHourRow = dateTimeNow.Hour * CalendarConstants.GridHourRows + CalendarConstants.TimeRowStart;
+            var currentHourRow = dateTimeNow.Hour * CalendarConstants.GridHourRows + CalendarConstants.InitialTimeRow;
             var currentMinuteRow = dateTimeNow.Minute / CalendarConstants.MinutesSampling;
 
             foreach (var time in calendarTimes)

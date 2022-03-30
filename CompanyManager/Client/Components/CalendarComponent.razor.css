@@ -30,9 +30,6 @@
 
 .current-hour {
     box-shadow: 1px 1px 15px rgb(0 0 0 / 10%);
-}
-
-.hour {
     padding: 0.5rem;
 }
 
