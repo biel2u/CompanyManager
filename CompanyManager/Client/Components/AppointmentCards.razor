@@ -22,7 +22,7 @@
                 </div>
             </ActivatorContent>
             <ChildContent>
-                <MudMenuItem>Edytuj</MudMenuItem>
+                <MudMenuItem @onclick="() => EditAppointment(appointment)">Edytuj</MudMenuItem>
                 <MudMenuItem @onclick="() => DeleteAppointment(appointment)"><span class="delete">Usuń</span></MudMenuItem>              
             </ChildContent>
         </MudMenu>
@@ -53,5 +53,21 @@
                 Appointments.Remove(appointment); 
             } 
         }      
+    }
+
+    private async Task EditAppointment(DisplayAppointmentModel appointment)
+    {
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
+        var parameters = new DialogParameters();
+        parameters.Add("SelectedDate", appointment.StartDate);
+        parameters.Add("AppointmentIdToEdit", appointment.Id);
+
+        var dialog = DialogService.Show<EditAppointmentModal>("Dodaj wizyte", parameters, options);
+        var result = await dialog.Result;
+
+        if (result.Cancelled == false)
+        {
+            Console.WriteLine("hej");
+        }    
     }
 }

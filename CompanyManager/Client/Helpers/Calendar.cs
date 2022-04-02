@@ -7,8 +7,9 @@ namespace CompanyManager.Client.Helpers
     {
         Task<List<CalendarDate>> BuildCalendarDates(int currentDayOfWeek);
         Task<List<CalendarTime>> BuildCalendarTimes();
-        Task<int> GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime);
+        int GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime);
         Task<List<CalendarTime>> SetCurrentHourAndMinuteRow(List<CalendarTime> calendarTimes);
+        int CalculateAppointmentDisplayRow(DateTime dateTime);
     }
 
     public class Calendar : ICalendar
@@ -38,7 +39,7 @@ namespace CompanyManager.Client.Helpers
             return Task.FromResult(calendarDates);
         }
 
-        public Task<int> GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime)
+        public int GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime)
         {
             var dayOfWeek = (int)dateTime.DayOfWeek - 1;
             const int sundayAsLastDayOfWeek = 6;
@@ -48,7 +49,7 @@ namespace CompanyManager.Client.Helpers
                 dayOfWeek = sundayAsLastDayOfWeek;
             }
 
-            return Task.FromResult(dayOfWeek);
+            return dayOfWeek;
         }
 
         public Task<List<CalendarTime>> BuildCalendarTimes()
@@ -99,6 +100,15 @@ namespace CompanyManager.Client.Helpers
             }
 
             return Task.FromResult(calendarTimes);
+        }
+
+        public int CalculateAppointmentDisplayRow(DateTime dateTime)
+        {
+            var hourRow = (CalendarConstants.GridHourRows * dateTime.Hour) + CalendarConstants.InitialTimeRow;
+            var minuteRow = dateTime.Minute / CalendarConstants.MinutesSampling;
+            var row = hourRow + minuteRow;
+
+            return row;
         }
     }
 }

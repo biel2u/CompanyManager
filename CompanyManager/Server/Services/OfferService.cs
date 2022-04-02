@@ -1,12 +1,13 @@
 ﻿using AutoMapper;
 using CompanyManager.Server.Repositories;
 using CompanyManager.Shared;
+using Microsoft.EntityFrameworkCore;
 
 namespace CompanyManager.Server.Services
 {
     public interface IOfferService
     {
-        Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory();
+        Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory(IEnumerable<DisplayOfferModel>? selectedOffers);
     }
 
     public class OfferService : IOfferService
@@ -20,9 +21,9 @@ namespace CompanyManager.Server.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory()
+        public async Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory(IEnumerable<DisplayOfferModel>? selectedOffers)
         {
-            var offers = await _offerRepository.GetAllOffers();
+            var offers = await _offerRepository.GetAllOffers().ToListAsync();          
             var offersGrouped = offers.GroupBy(o => o.OfferCategory.Name).Select(grp => grp);
             var offersViewModel = new List<OffersGroup>();
 
@@ -37,7 +38,26 @@ namespace CompanyManager.Server.Services
                 });
             }
 
-            return offersViewModel;
+            if(selectedOffers != null && selectedOffers.Any())
+            {
+                UpdateSelectedOffers(offersViewModel, selectedOffers);
+            }
+
+            return offersViewModel;          
+        }
+
+        private void UpdateSelectedOffers(IEnumerable<OffersGroup> offersGroups, IEnumerable<DisplayOfferModel> selectedOffers)
+        {
+            foreach (var group in offersGroups)
+            {
+                foreach (var offer in group.Offers)
+                {
+                    if (selectedOffers.Any(s => s.Id == offer.Id))
+                    {
+                        offer.IsSelected = true;
+                    }
+                }
+            }
         }
     }
 }

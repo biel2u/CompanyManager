@@ -4,6 +4,8 @@ namespace CompanyManager.Shared
 {
     public class EditAppointmentModel
     {
+        public int? Id { get; set; }
+
         [Required(ErrorMessage = "Należy podać datę.")]
         public DateTime StartDate { get; set; }
 

@@ -2,6 +2,8 @@
 using CompanyManager.Server.Helpers;
 using CompanyManager.Shared;
 using CompanyManager.Server.Models;
+using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 
 namespace CompanyManager.Server.Services
 {
@@ -16,37 +18,66 @@ namespace CompanyManager.Server.Services
 
     public class AppointmentService : IAppointmentService
     {
-        private IDateTimeProvider _dateTimeProvider;
-        private IAppointmentRepository _appointmentRepository;
-        private IOfferRepository _offerRepository;
-        private ICustomerService _customerService;
+        private readonly IDateTimeProvider _dateTimeProvider;
+        private readonly IAppointmentRepository _appointmentRepository;
+        private readonly IOfferRepository _offerRepository;
+        private readonly ICustomerService _customerService;
+        private readonly IMapper _mapper;
 
         public AppointmentService(
             IDateTimeProvider dateTimeProvider, 
             IAppointmentRepository appointmentRepository, 
             IOfferRepository offerRepository, 
-            ICustomerService customeService)
+            ICustomerService customeService,
+            IMapper mapper)
         {
             _dateTimeProvider = dateTimeProvider;
             _appointmentRepository = appointmentRepository;
             _offerRepository = offerRepository;
             _customerService = customeService;
+            _mapper = mapper;
         }
 
         public async Task<EditAppointmentModel> GetAppointment(int? appointmentId)
         {
-            var appointment = new EditAppointmentModel();
             if (appointmentId.HasValue)
             {
-                //get existing
+                var appointment = await GetAppointmentToEdit(appointmentId.Value);
+
+                return appointment;
             }
             else
             {
-                var dateTimeNow = _dateTimeProvider.GetCurrentDateTime();
-                appointment.Offers = new List<DisplayOfferModel>();
-                appointment.StartDate = dateTimeNow.Date;
-                appointment.Time = dateTimeNow.TimeOfDay;
-            }
+                var appointment = GetAppointmentToCreate();
+
+                return appointment;
+            }           
+        }
+
+        private async Task<EditAppointmentModel> GetAppointmentToEdit(int appointmentId)
+        {
+            var dbAppointment = await _appointmentRepository.GetAppointment(appointmentId);
+            var appointment = new EditAppointmentModel();
+
+            appointment.Id = dbAppointment.Id;
+            appointment.StartDate = dbAppointment.StartDate;
+            appointment.Time = dbAppointment.StartDate.TimeOfDay;
+            appointment.CustomerNameAndPhone = _customerService.CreateCustomerNameWithPhoneNumber(dbAppointment.Customer);
+            appointment.Note = dbAppointment.Note;
+            appointment.Confirmed = dbAppointment.Status == AppointmentStatus.Confirmed;
+            appointment.Offers = _mapper.Map<List<DisplayOfferModel>>(dbAppointment.Offers);
+
+            return appointment;
+        }
+
+        private EditAppointmentModel GetAppointmentToCreate()
+        {
+            var appointment = new EditAppointmentModel();
+
+            var dateTimeNow = _dateTimeProvider.GetCurrentDateTime();
+            appointment.Offers = new List<DisplayOfferModel>();
+            appointment.StartDate = dateTimeNow.Date;
+            appointment.Time = dateTimeNow.TimeOfDay;
 
             return appointment;
         }
@@ -65,27 +96,21 @@ namespace CompanyManager.Server.Services
                     OfferName = appointment.Offers.First().Name,
                     OffersCount = appointment.Offers.Count(),
                     StartDate = appointment.StartDate,
-                    EndDate = appointment.EndDate,
-                    StartRow = CalculateAppointmentDisplayRow(appointment.StartDate),
-                    EndRow = CalculateAppointmentDisplayRow(appointment.EndDate)
+                    EndDate = appointment.EndDate
                 });
             }
 
             return appointmentsToDisplay;
-        }
-
-        private int CalculateAppointmentDisplayRow(DateTime dateTime)
-        {
-            var hourRow = (CalendarConstants.GridHourRows * dateTime.Hour) + CalendarConstants.InitialTimeRow;
-            var minuteRow = dateTime.Minute / CalendarConstants.MinutesSampling;
-            var row = hourRow + minuteRow;
-
-            return row;
-        }
+        }        
 
         public async Task<Dictionary<string,string>> ValidateAppointment(EditAppointmentModel appointment)
         {
             var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRangeHourlyAccuracy(appointment.StartDate, appointment.EndDate);
+            if(appointment.Id != null)
+            {
+                appointmentsInRange.RemoveAll(a => a.Id == appointment.Id);
+            }
+
             var errors = new Dictionary<string, string>();
 
             if (appointmentsInRange.Any())
@@ -107,8 +132,8 @@ namespace CompanyManager.Server.Services
 
             if (customer == null) return false;
 
-            var offers = await _offerRepository.GetAllOffers();
-            var selectedOffers = offers.Where(o => appointment.Offers.Any(ao => ao.Id == o.Id)).ToList();
+            var offers = _offerRepository.GetAllOffers();
+            var selectedOffers = await offers.Where(o => appointment.Offers.Any(ao => ao.Id == o.Id)).ToListAsync();
 
             var newAppointment = new Appointment
             {

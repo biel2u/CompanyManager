@@ -18,9 +18,9 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAppointment(int? appointmentId)
+        public async Task<IActionResult> GetAppointment(int? id)
         {
-            var appointment = await _appointmentService.GetAppointment(appointmentId);
+            var appointment = await _appointmentService.GetAppointment(id);
             return Ok(appointment);
         }
 

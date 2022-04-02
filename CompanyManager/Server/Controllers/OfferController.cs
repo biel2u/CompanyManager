@@ -17,10 +17,10 @@ namespace CompanyManager.Server.Controllers
             _offerService = offerService;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetCustomers()
+        [HttpPost]
+        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetCustomers(IEnumerable<DisplayOfferModel>? selectedOffers)
         {
-            var offers = await _offerService.GetAllOffersByParentCategory();
+            var offers = await _offerService.GetAllOffersByParentCategory(selectedOffers);
             return Ok(offers);
         }
     }

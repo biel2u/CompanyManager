@@ -5,9 +5,9 @@ namespace CompanyManager.Client.Helpers
 {
     public interface ICalendarControls
     {
-        Task<List<CalendarDate>> SwitchWeek(List<CalendarDate> calendarDates, int selectedWeek, bool moveForward, int currentDayOfWeek);
-        Task<List<CalendarDate>> SetCurrentWeek(List<CalendarDate> calendarDates, int currentDayOfWeek);
-        Task<CalendarWeek> SetCalendarForSelectedWeek(List<CalendarDate> calendarDates, DateTime selectedDateTime, int currentDayOfWeek);
+        List<CalendarDate> SwitchWeek(List<CalendarDate> calendarDates, int selectedWeek, bool moveForward, int currentDayOfWeek);
+        List<CalendarDate> SetCurrentWeek(List<CalendarDate> calendarDates, int currentDayOfWeek);
+        CalendarWeek SetCalendarForSelectedWeek(List<CalendarDate> calendarDates, DateTime selectedDateTime, int currentDayOfWeek);
     }
 
     public class CalendarControls : ICalendarControls
@@ -19,11 +19,11 @@ namespace CompanyManager.Client.Helpers
             _calendar = calendar;
         }
 
-        public async Task<List<CalendarDate>> SwitchWeek(List<CalendarDate> calendarDates, int selectedWeek, bool moveForward, int currentDayOfWeek)
+        public List<CalendarDate> SwitchWeek(List<CalendarDate> calendarDates, int selectedWeek, bool moveForward, int currentDayOfWeek)
         {
             if (selectedWeek == 0)
             {
-                var currentWeek = await SetCurrentWeek(calendarDates, currentDayOfWeek);
+                var currentWeek = SetCurrentWeek(calendarDates, currentDayOfWeek);
                 return currentWeek;
             }
 
@@ -42,7 +42,7 @@ namespace CompanyManager.Client.Helpers
             return calendarDates;
         }
 
-        public Task<List<CalendarDate>> SetCurrentWeek(List<CalendarDate> calendarDates, int currentDayOfWeek)
+        public List<CalendarDate> SetCurrentWeek(List<CalendarDate> calendarDates, int currentDayOfWeek)
         {
             var dayEnumeration = 0;
             var dateTimeNow = DateTime.Now;
@@ -58,10 +58,10 @@ namespace CompanyManager.Client.Helpers
                 dayEnumeration++;
             }
 
-            return Task.FromResult(calendarDates);
+            return calendarDates;
         }
 
-        public async Task<CalendarWeek> SetCalendarForSelectedWeek(List<CalendarDate> calendarDates, DateTime selectedDateTime, int currentDayOfWeek)
+        public CalendarWeek SetCalendarForSelectedWeek(List<CalendarDate> calendarDates, DateTime selectedDateTime, int currentDayOfWeek)
         {
             var dayDiff = (selectedDateTime - DateTime.Today).Days;
             var selectedWeek = (Math.Abs(dayDiff) + currentDayOfWeek) / 7;
@@ -70,17 +70,17 @@ namespace CompanyManager.Client.Helpers
             {
                 if (dayDiff > 0)
                 {
-                    calendarDates = await UpdateCalendarDates(calendarDates, selectedDateTime);
+                    calendarDates = UpdateCalendarDates(calendarDates, selectedDateTime);
                 }
                 else if (dayDiff < 0)
                 {
                     selectedWeek = -selectedWeek;
-                    calendarDates = await UpdateCalendarDates(calendarDates, selectedDateTime);
+                    calendarDates = UpdateCalendarDates(calendarDates, selectedDateTime);
                 }
             }
             else
             {
-                calendarDates = await SetCurrentWeek(calendarDates, currentDayOfWeek);
+                calendarDates = SetCurrentWeek(calendarDates, currentDayOfWeek);
             }
 
             var calendarWeek = new CalendarWeek
@@ -92,9 +92,9 @@ namespace CompanyManager.Client.Helpers
             return calendarWeek;
         }
 
-        private async Task<List<CalendarDate>> UpdateCalendarDates(List<CalendarDate> calendarDates, DateTime selectedDateTime)
+        private List<CalendarDate> UpdateCalendarDates(List<CalendarDate> calendarDates, DateTime selectedDateTime)
         {
-            var dayOfWeek = await _calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(selectedDateTime);
+            var dayOfWeek = _calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(selectedDateTime);
 
             for (var i = 0; i <= 6; i++)
             {

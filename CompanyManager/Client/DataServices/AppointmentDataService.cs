@@ -5,7 +5,7 @@ namespace CompanyManager.Client.DataServices
 {
     public interface IAppointmentDataService
     {
-        Task<EditAppointmentModel> GetAppointment();
+        Task<EditAppointmentModel> GetAppointment(int? id);
         Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment);
         Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
         Task<HttpResponseMessage> DeleteAppointment(int id);
@@ -21,9 +21,9 @@ namespace CompanyManager.Client.DataServices
             _http = http;
         }
 
-        public async Task<EditAppointmentModel> GetAppointment()
+        public async Task<EditAppointmentModel> GetAppointment(int? id)
         {            
-            var response = await _http.GetFromJsonAsync<EditAppointmentModel>($"{ControllerName}/GetAppointment");
+            var response = await _http.GetFromJsonAsync<EditAppointmentModel>($"{ControllerName}/GetAppointment?id={id}");
             return response ?? new EditAppointmentModel();          
         }
 

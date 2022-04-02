@@ -6,7 +6,7 @@ namespace CompanyManager.Server.Repositories
 {
     public interface IOfferRepository
     {
-        Task<List<Offer>> GetAllOffers();
+        IQueryable<Offer> GetAllOffers();
     }
 
     public class OfferRepository : IOfferRepository
@@ -18,9 +18,9 @@ namespace CompanyManager.Server.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<List<Offer>> GetAllOffers()
+        public IQueryable<Offer> GetAllOffers()
         {
-            var offers = await _dbContext.Offers.Include(o => o.OfferCategory).ToListAsync();
+            var offers = _dbContext.Offers.Include(o => o.OfferCategory);
             return offers;
         }
     }

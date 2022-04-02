@@ -11,6 +11,7 @@ namespace CompanyManager.Server.Services
         Task<List<string>> SearchCustomers(string searchValue);
         Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
         Task<bool> IsPhoneNumberAlreadyExists(string phoneNumber);
+        string CreateCustomerNameWithPhoneNumber(Customer customer);
     }
 
     public class CustomerService : ICustomerService
@@ -40,7 +41,8 @@ namespace CompanyManager.Server.Services
             var customersSearchResult = new List<string>();
             foreach (var customer in customers)
             {
-                customersSearchResult.Add($"{customer.Surname} {customer.Name} ({customer.Phone})");
+                var customerNameWithPhoneNumber = CreateCustomerNameWithPhoneNumber(customer);
+                customersSearchResult.Add(customerNameWithPhoneNumber);
             }
 
             return customersSearchResult;
@@ -69,6 +71,12 @@ namespace CompanyManager.Server.Services
         {
             var customers = await _customerRepository.GetCustomersByPhone(phoneNumber);
             return customers.Any();
+        }
+
+        public string CreateCustomerNameWithPhoneNumber(Customer customer)
+        {
+            var customerNameWithPhoneNumber = $"{ customer.Surname } { customer.Name} ({ customer.Phone})";
+            return customerNameWithPhoneNumber;
         }
     }
 }

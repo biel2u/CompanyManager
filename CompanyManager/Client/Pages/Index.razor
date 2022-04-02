@@ -29,7 +29,7 @@
         var parameters = new DialogParameters();
         parameters.Add("SelectedDate", _dateTimeSelected);
 
-        var dialog = DialogService.Show<AddAppointmentModal>("Dodaj wizyte", parameters, options);
+        var dialog = DialogService.Show<EditAppointmentModal>("Dodaj wizyte", parameters, options);
         var result = await dialog.Result;
 
         if (result.Cancelled == false)

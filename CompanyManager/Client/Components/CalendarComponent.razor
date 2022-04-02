@@ -77,7 +77,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _currentDayOfWeek = await Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
+        _currentDayOfWeek = Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
         _calendarDates = await Calendar.BuildCalendarDates(_currentDayOfWeek);
         _calendarTimes = await Calendar.BuildCalendarTimes();
 
@@ -98,7 +98,7 @@
 
     public async Task SetCalendarForSelectedDate(DateTime selectedDateTime)
     {
-        var calendarWeek = await CalendarControls.SetCalendarForSelectedWeek(_calendarDates, selectedDateTime, _currentDayOfWeek);
+        var calendarWeek = CalendarControls.SetCalendarForSelectedWeek(_calendarDates, selectedDateTime, _currentDayOfWeek);
         _calendarDates = calendarWeek.CalendarDates;
         _selectedWeek = calendarWeek.SelectedWeek;
         await GetAppointmentsForSelectedWeek();
@@ -121,29 +121,31 @@
         });
 
         foreach(var appointment in _appointments)
-        {
-            appointment.DayOfWeek = await Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(appointment.StartDate);
-        }
+        {            
+            appointment.DayOfWeek = Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(appointment.StartDate);
+            appointment.StartRow = Calendar.CalculateAppointmentDisplayRow(appointment.StartDate);
+            appointment.EndRow = Calendar.CalculateAppointmentDisplayRow(appointment.EndDate);
+        }      
     }
 
     private async Task NextWeek()
     {
         _selectedWeek++;
-        _calendarDates = await CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, true, _currentDayOfWeek);
+        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, true, _currentDayOfWeek);
         await GetAppointmentsForSelectedWeek();
     }
 
     private async Task PreviousWeek()
     {
         _selectedWeek--;
-        _calendarDates = await CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, false, _currentDayOfWeek);
+        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, false, _currentDayOfWeek);
         await GetAppointmentsForSelectedWeek();
     }
 
     private async Task CurrentWeek()
     {        
         _selectedWeek = 0;
-        _calendarDates = await CalendarControls.SetCurrentWeek(_calendarDates, _currentDayOfWeek);
+        _calendarDates = CalendarControls.SetCurrentWeek(_calendarDates, _currentDayOfWeek);
         await GetAppointmentsForSelectedWeek();
     }
 
