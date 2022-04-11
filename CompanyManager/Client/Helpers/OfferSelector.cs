@@ -14,7 +14,7 @@ namespace CompanyManager.Client.Helpers
         {
             if (selectedOffers.Any(o => o.Id == offer.Id))
             {
-                selectedOffers.Remove(offer);
+                selectedOffers.RemoveAll(s => s.Id == offer.Id);
             }
             else
             {

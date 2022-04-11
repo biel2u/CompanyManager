@@ -5,11 +5,6 @@ namespace CompanyManager.Server.Models
 {
     public class Appointment
     {
-        public Appointment()
-        {
-            Offers = new HashSet<Offer>();
-        }
-
         public int Id { get; set; }
 
         public DateTime StartDate { get; set; }
@@ -25,7 +20,7 @@ namespace CompanyManager.Server.Models
 
         public AppointmentStatus Status { get; set; }
 
-        public ICollection<Offer> Offers { get; set; } = null!;
+        public virtual ICollection<AppointmentOffer> AppointmentOffers { get; set; } = null!;
 
         public ICollection<Photo>? Photos { get; set; }
     }

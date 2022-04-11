@@ -18,7 +18,7 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetCustomers(IEnumerable<DisplayOfferModel>? selectedOffers)
+        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetOffers(IEnumerable<DisplayOfferModel>? selectedOffers)
         {
             var offers = await _offerService.GetAllOffersByParentCategory(selectedOffers);
             return Ok(offers);

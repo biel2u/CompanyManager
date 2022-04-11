@@ -4,11 +4,6 @@ namespace CompanyManager.Server.Models
 {
     public class Offer
     {
-        public Offer()
-        {
-            Appointments = new HashSet<Appointment>();
-        }
-
         public int Id { get; set; }
 
         [Column(TypeName = "nvarchar(100)")]
@@ -19,7 +14,7 @@ namespace CompanyManager.Server.Models
 
         public int TimeInMinutes { get; set; }
 
-        public ICollection<Appointment>? Appointments { get; set; }
+        public virtual ICollection<AppointmentOffer> AppointmentOffers { get; set; } = null!;
 
         public int OfferCategoryId { get; set; }
 

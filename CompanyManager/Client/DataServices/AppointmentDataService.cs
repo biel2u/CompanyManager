@@ -1,12 +1,14 @@
 ﻿using CompanyManager.Shared;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 
 namespace CompanyManager.Client.DataServices
 {
     public interface IAppointmentDataService
     {
         Task<EditAppointmentModel> GetAppointment(int? id);
-        Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment);
+        Task<HttpResponseMessage> HandleSubmit(EditAppointmentModel appointment);
         Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
         Task<HttpResponseMessage> DeleteAppointment(int id);
     }
@@ -27,10 +29,20 @@ namespace CompanyManager.Client.DataServices
             return response ?? new EditAppointmentModel();          
         }
 
-        public async Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment)
+        public async Task<HttpResponseMessage> HandleSubmit(EditAppointmentModel appointment)
         {
-            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);          
-            return resposne;
+            if(appointment.Id == null)
+            {
+                var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);
+                return resposne;
+            }
+            else
+            {
+                var serializedAppointment = JsonSerializer.Serialize(appointment);
+                var content = new StringContent(serializedAppointment, Encoding.UTF8, "application/json-patch+json");
+                var resposne = await _http.PatchAsync($"{ControllerName}/UpdateAppointment", content);
+                return resposne;
+            }
         }
 
         public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)

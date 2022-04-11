@@ -61,10 +61,13 @@
         </DialogContent>
         <DialogActions >
             <div class="appointment-summary">
-                <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_summarizedCost złoty</div>
-                <div>
-                    <MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointment.StartDate.ToString("HH:mm") - @_appointment.EndDate.ToString("HH:mm")
-                </div>
+                @if(_appointment.Offers != null && _appointment.Offers.Any())
+                {
+                    <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_summarizedCost złoty</div>
+                    <div>
+                        <MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointmentTime.ToString(@"hh\:mm") - @_appointment.EndDate.ToString("HH:mm")
+                    </div>
+                }
             </div> 
             <MudButton OnClick="Cancel">Anuluj</MudButton>
             <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Zapisz</MudButton>
@@ -88,12 +91,12 @@
     private IEnumerable<OffersGroup> _offerGroups = Enumerable.Empty<OffersGroup>();
     private decimal _summarizedCost = 0;
     private int _summarizedTime = 0;
-    private TimeSpan? _appointmentTime;
+    private TimeSpan _appointmentTime;
 
     protected override async Task OnInitializedAsync()
     {
         _appointment = await AppointmentDataService.GetAppointment(AppointmentIdToEdit);
-        _appointmentTime = _appointment.Time;
+        _appointmentTime = _appointment.Id != null ? _appointment.StartDate.TimeOfDay : DateTime.Now.TimeOfDay;
 
         _offerGroups = await OfferDataService.GetOffers(_appointment?.Offers);
     }
@@ -128,14 +131,16 @@
 
     private async Task UpdateTime(TimeSpan? newTime)
     {
-        _appointmentTime = newTime;
+        _appointmentTime = newTime ?? DateTime.Now.TimeOfDay;
         await UpdateAppointmentDates();
     }
 
     private Task UpdateAppointmentDates()
     {
-        _appointment.StartDate = (SelectedDate + _appointmentTime) ?? DateTime.Now;
-        _appointment.EndDate = _appointment.StartDate.AddMinutes(_summarizedTime);
+        _appointment.StartDate = SelectedDate;
+        _appointment.Time = _appointmentTime;
+        var endTime = _appointmentTime.Add(TimeSpan.FromMinutes(_summarizedTime));
+        _appointment.EndDate = SelectedDate + endTime;
 
         return Task.CompletedTask;
     }
@@ -150,7 +155,7 @@
 
     private async Task HandleValidSubmit()
     {
-        var response = await AppointmentDataService.CreateAppointment(_appointment);
+        var response = await AppointmentDataService.HandleSubmit(_appointment);
         var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
 
         if (response.StatusCode == HttpStatusCode.BadRequest && errors != null && errors.Any())

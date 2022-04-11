@@ -14,6 +14,7 @@ namespace CompanyManager.Server.Data
         public DbSet<Offer> Offers => Set<Offer>();
         public DbSet<Consent> Consents => Set<Consent>();
         public DbSet<Photo> Photos => Set<Photo>();
+        public DbSet<AppointmentOffer> AppointmentOffers => Set<AppointmentOffer>();
 
         public ApplicationDbContext(
             DbContextOptions options,

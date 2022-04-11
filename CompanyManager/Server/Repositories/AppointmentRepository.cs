@@ -32,12 +32,13 @@ namespace CompanyManager.Server.Repositories
         }
 
         public async Task<List<Appointment>> GetAppointmentsInRangeDailyAccuracy(DateTime startDate, DateTime endDate)
-        {
+        {           
             var appointments = await _dbContext.Appointments
-                .Where(a => a.StartDate.Date >= startDate && a.StartDate.Date <= endDate)
-                .Include(a => a.Customer)
-                .Include(a => a.Offers)
-                .ToListAsync();
+            .Where(a => a.StartDate.Date >= startDate && a.StartDate.Date <= endDate)
+            .Include(a => a.Customer)
+            .Include(a => a.AppointmentOffers)
+            .ThenInclude(a => a.Offer)
+            .ToListAsync();
 
             return appointments;
         }
@@ -54,7 +55,8 @@ namespace CompanyManager.Server.Repositories
         {
             var appointment = await _dbContext.Appointments
                 .Include(a => a.Customer)
-                .Include(a => a.Offers)
+                .Include(a => a.AppointmentOffers)
+                .ThenInclude(a => a.Offer)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return appointment ?? new Appointment();

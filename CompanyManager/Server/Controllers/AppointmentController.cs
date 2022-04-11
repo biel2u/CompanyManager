@@ -34,7 +34,7 @@ namespace CompanyManager.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAppointment([FromBody] EditAppointmentModel appointment)
         {
-            if (appointment == null || ModelState.IsValid == false)
+            if (appointment == null || ModelState.IsValid == false) // move to something like appointmentValidator
             {
                 return BadRequest(ModelState);
             }
@@ -52,6 +52,31 @@ namespace CompanyManager.Server.Controllers
             }
 
             var result = await _appointmentService.CreateAppointment(appointment);
+
+            return result ? Ok(ModelState) : BadRequest(ModelState);
+        }
+
+        [HttpPatch]
+        public async Task<IActionResult> UpdateAppointment([FromBody] EditAppointmentModel appointment)
+        {
+            if (appointment == null || ModelState.IsValid == false) // move to something like appointmentValidator
+            {
+                return BadRequest(ModelState);
+            }
+
+            var errors = await _appointmentService.ValidateAppointment(appointment);
+
+            foreach (var error in errors)
+            {
+                ModelState.AddModelError(error.Key, error.Value);
+            }
+
+            if (errors.Any())
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _appointmentService.UpdateAppointment(appointment);
 
             return result ? Ok(ModelState) : BadRequest(ModelState);
         }

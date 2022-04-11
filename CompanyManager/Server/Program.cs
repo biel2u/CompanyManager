@@ -34,7 +34,7 @@ builder.Services.AddTransient<IOfferService, OfferService>();
 builder.Services.AddTransient<IAppointmentService, AppointmentService>();
 builder.Services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
-
+builder.Services.AddTransient<IAppointmentOfferRepository, AppointmentOfferRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

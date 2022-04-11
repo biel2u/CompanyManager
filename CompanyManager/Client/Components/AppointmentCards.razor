@@ -59,10 +59,10 @@
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
         var parameters = new DialogParameters();
-        parameters.Add("SelectedDate", appointment.StartDate);
+        parameters.Add("SelectedDate", appointment.StartDate.Date);
         parameters.Add("AppointmentIdToEdit", appointment.Id);
 
-        var dialog = DialogService.Show<EditAppointmentModal>("Dodaj wizyte", parameters, options);
+        var dialog = DialogService.Show<EditAppointmentModal>("Edytuj wizytę", parameters, options);
         var result = await dialog.Result;
 
         if (result.Cancelled == false)
