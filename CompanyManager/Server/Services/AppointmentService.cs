@@ -10,7 +10,6 @@ namespace CompanyManager.Server.Services
     public interface IAppointmentService
     {
         Task<EditAppointmentModel> GetAppointment(int? appointmentId);
-        Task<Dictionary<string, string>> ValidateAppointment(EditAppointmentModel appointment);
         Task<bool> CreateAppointment(EditAppointmentModel appointment);
         Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
         Task<bool> DeleteAppointment(int id);
@@ -127,30 +126,7 @@ namespace CompanyManager.Server.Services
             }
 
             return appointmentsToDisplay;
-        }        
-
-        public async Task<Dictionary<string,string>> ValidateAppointment(EditAppointmentModel appointment)
-        {
-            var appointmentsInRange = await _appointmentRepository.GetAppointmentsInRangeHourlyAccuracy(appointment.StartDate, appointment.EndDate);
-            if(appointment.Id != null)
-            {
-                appointmentsInRange.RemoveAll(a => a.Id == appointment.Id);
-            }
-
-            var errors = new Dictionary<string, string>();
-
-            if (appointmentsInRange.Any())
-            {
-                errors.Add("DateConflict", "Czas trwania wizyty pokrywa się z czasem innej wizyty.");
-            }
-
-            if(appointment.StartDate.Day != appointment.EndDate.Day)
-            {
-                errors.Add("TimeExceeded", "Wizyta nie może być rozłożona na dwa dni.");
-            }
-
-            return errors;
-        }
+        }               
 
         public async Task<bool> CreateAppointment(EditAppointmentModel appointment)
         {

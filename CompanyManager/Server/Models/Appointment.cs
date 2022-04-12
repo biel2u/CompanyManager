@@ -1,5 +1,4 @@
-﻿using CompanyManager.Shared;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CompanyManager.Server.Models
 {

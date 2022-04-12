@@ -3,6 +3,7 @@ using CompanyManager.Server.Helpers;
 using CompanyManager.Server.Models;
 using CompanyManager.Server.Repositories;
 using CompanyManager.Server.Services;
+using CompanyManager.Server.Validators;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,6 +36,9 @@ builder.Services.AddTransient<IAppointmentService, AppointmentService>();
 builder.Services.AddTransient<IDateTimeProvider, DateTimeProvider>();
 builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddTransient<IAppointmentOfferRepository, AppointmentOfferRepository>();
+builder.Services.AddTransient<IAppointmentValidator, AppointmentValidator>();
+builder.Services.AddTransient<ICustomerValidator, CustomerValidator>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

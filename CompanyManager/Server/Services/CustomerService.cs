@@ -10,7 +10,6 @@ namespace CompanyManager.Server.Services
         Task<EditCustomerModel> AddCustomer(EditCustomerModel customerViewModel);
         Task<List<string>> SearchCustomers(string searchValue);
         Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
-        Task<bool> IsPhoneNumberAlreadyExists(string phoneNumber);
         string CreateCustomerNameWithPhoneNumber(Customer customer);
     }
 
@@ -65,12 +64,6 @@ namespace CompanyManager.Server.Services
 
             var customer = await _customerRepository.GetCustomerByPhone(phoneNumber);
             return customer;
-        }
-
-        public async Task<bool> IsPhoneNumberAlreadyExists(string phoneNumber)
-        {
-            var customers = await _customerRepository.GetCustomersByPhone(phoneNumber);
-            return customers.Any();
         }
 
         public string CreateCustomerNameWithPhoneNumber(Customer customer)

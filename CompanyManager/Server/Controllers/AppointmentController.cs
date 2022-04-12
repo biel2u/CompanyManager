@@ -1,4 +1,5 @@
-﻿using CompanyManager.Server.Services;
+﻿using CompanyManager.Server.Validators;
+using CompanyManager.Server.Services;
 using CompanyManager.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace CompanyManager.Server.Controllers
     public class AppointmentController : ControllerBase
     {
         private IAppointmentService _appointmentService;
+        private IAppointmentValidator _appointmentValidator;
 
-        public AppointmentController(IAppointmentService appointmentService)
+        public AppointmentController(IAppointmentService appointmentService, IAppointmentValidator appointmentValidator)
         {
             _appointmentService = appointmentService;
+            _appointmentValidator = appointmentValidator;
         }
 
         [HttpGet]
@@ -34,50 +37,26 @@ namespace CompanyManager.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateAppointment([FromBody] EditAppointmentModel appointment)
         {
-            if (appointment == null || ModelState.IsValid == false) // move to something like appointmentValidator
-            {
-                return BadRequest(ModelState);
-            }
-            
-            var errors = await _appointmentService.ValidateAppointment(appointment);
-
-            foreach(var error in errors)
-            {
-                ModelState.AddModelError(error.Key, error.Value);
-            }
-
-            if(errors.Any())
+            await _appointmentValidator.SetModelStateErrors(appointment, ModelState);
+            if (appointment == null || ModelState.IsValid == false || ModelState.ErrorCount > 0)
             {
                 return BadRequest(ModelState);
             }
 
             var result = await _appointmentService.CreateAppointment(appointment);
-
             return result ? Ok(ModelState) : BadRequest(ModelState);
         }
 
         [HttpPatch]
         public async Task<IActionResult> UpdateAppointment([FromBody] EditAppointmentModel appointment)
         {
-            if (appointment == null || ModelState.IsValid == false) // move to something like appointmentValidator
-            {
-                return BadRequest(ModelState);
-            }
-
-            var errors = await _appointmentService.ValidateAppointment(appointment);
-
-            foreach (var error in errors)
-            {
-                ModelState.AddModelError(error.Key, error.Value);
-            }
-
-            if (errors.Any())
+            await _appointmentValidator.SetModelStateErrors(appointment, ModelState);
+            if (appointment == null || ModelState.IsValid == false || ModelState.ErrorCount > 0)
             {
                 return BadRequest(ModelState);
             }
 
             var result = await _appointmentService.UpdateAppointment(appointment);
-
             return result ? Ok(ModelState) : BadRequest(ModelState);
         }
 

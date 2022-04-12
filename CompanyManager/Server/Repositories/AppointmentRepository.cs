@@ -7,7 +7,6 @@ namespace CompanyManager.Server.Repositories
     public interface IAppointmentRepository
     {
         Task<List<Appointment>> GetAppointmentsInRangeHourlyAccuracy(DateTime startDate, DateTime endDate);
-        Task<Appointment> AddAppointment(Appointment appointment);
         Task<List<Appointment>> GetAppointmentsInRangeDailyAccuracy(DateTime startDate, DateTime endDate);
         Task<bool> DeleteAppointment(int id);
         Task<Appointment> GetAppointment(int id);
@@ -25,7 +24,7 @@ namespace CompanyManager.Server.Repositories
         public async Task<List<Appointment>> GetAppointmentsInRangeHourlyAccuracy(DateTime startDate, DateTime endDate)
         {
             var appointments = await _dbContext.Appointments
-                .Where(a => (a.StartDate < startDate && a.EndDate > startDate) || (a.StartDate < endDate && a.EndDate > endDate))
+                .Where(a => (a.StartDate <= startDate && a.EndDate > startDate) || a.StartDate < endDate)
                 .ToListAsync();
 
             return appointments;
@@ -41,14 +40,6 @@ namespace CompanyManager.Server.Repositories
             .ToListAsync();
 
             return appointments;
-        }
-
-        public async Task<Appointment> AddAppointment(Appointment appointment)
-        {
-            var newAppointment = _dbContext.Appointments.Add(appointment);
-            await _dbContext.SaveChangesAsync();
-
-            return newAppointment.Entity;
         }
 
         public async Task<Appointment> GetAppointment(int id)

@@ -1,4 +1,5 @@
 ﻿using CompanyManager.Server.Services;
+using CompanyManager.Server.Validators;
 using CompanyManager.Shared;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,10 +12,12 @@ namespace CompanyManager.Server.Controllers
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerService _customerService;
+        private readonly ICustomerValidator _customerValidator;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(ICustomerService customerService, ICustomerValidator customerValidator)
         {
             _customerService = customerService;
+            _customerValidator = customerValidator;
         }
 
         [HttpGet]
@@ -27,13 +30,12 @@ namespace CompanyManager.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<EditCustomerModel>> CreateCustomer([FromBody] EditCustomerModel customer)
         {
-            if (!ModelState.IsValid || customer == null) return BadRequest(ModelState);
-            if(await _customerService.IsPhoneNumberAlreadyExists(customer.Phone))
+            await _customerValidator.SetModelStateErrors(customer, ModelState);
+            if (ModelState.IsValid == false || customer == null || ModelState.ErrorCount > 0)
             {
-                ModelState.AddModelError("PhoneNumberError", "Klient o podanym numerze telefonu już istnieje.");
                 return BadRequest(ModelState);
             }
-
+          
             await _customerService.AddCustomer(customer);
             return Ok(ModelState);
         }

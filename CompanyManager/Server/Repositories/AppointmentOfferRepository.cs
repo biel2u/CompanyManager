@@ -1,6 +1,5 @@
 ﻿using CompanyManager.Server.Data;
 using CompanyManager.Server.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace CompanyManager.Server.Repositories
 {
@@ -11,7 +10,6 @@ namespace CompanyManager.Server.Repositories
             IEnumerable<AppointmentOffer> appointmentOffersToCreate,
             IEnumerable<AppointmentOffer> appointmentOffersToUpdate,
             IEnumerable<AppointmentOffer> appointmentOffersToDelete);
-        Task<List<AppointmentOffer>> GetAppointmentOffers(int appointmentId);
     }
 
     public class AppointmentOfferRepository : IAppointmentOfferRepository
@@ -21,13 +19,6 @@ namespace CompanyManager.Server.Repositories
         public AppointmentOfferRepository(ApplicationDbContext dbContext)
         {
             _dbContext = dbContext;
-        }
-
-        public async Task<List<AppointmentOffer>> GetAppointmentOffers(int appointmentId)
-        {
-            var appointmentOffers = await _dbContext.AppointmentOffers.Where(a => a.AppointmentId == appointmentId).ToListAsync();
-            
-            return appointmentOffers;
         }
 
         public async Task<bool> CreateAppointmentWithOffers(IEnumerable<AppointmentOffer> appointmentOffers)
