@@ -1,12 +1,9 @@
-﻿@using CompanyManager.Client.DataServices
-@using CompanyManager.Client.Helpers
+﻿@using CompanyManager.Client.Helpers
 @using CompanyManager.Client.Models
 @using CompanyManager.Shared
-@using System.Timers
 @inject IJSRuntime JSRuntime;
 @inject ICalendar Calendar;
 @inject ICalendarControls CalendarControls;
-@inject IAppointmentDataService AppointmentDataService;
 @implements IDisposable;
 
 <div class="calendar-days">
@@ -39,9 +36,12 @@
 </div>
 <div class="calendar-hours-wrapper">
     <div class="calendar-hours" style="grid-template-rows: repeat(@CalendarConstants.GridTotalRows, 1fr);">
-        @if(_selectedWeek == 0)
+        @if(_calendarOptions.SelectedWeek == 0)
         {
-           <div class="current-day" style="grid-area: 1 / @(_currentDayOfWeek + CalendarConstants.CalendarAreaStartColumn) / @CalendarConstants.GridTotalRows / @(_currentDayOfWeek + CalendarConstants.CalendarAreaStartColumn);"></div> 
+            <div 
+                class="current-day" 
+                style="grid-area: 1 / @(_calendarOptions.CurrentDayOfWeek + CalendarConstants.CalendarAreaStartColumn) / @CalendarConstants.GridTotalRows / @(_calendarOptions.CurrentDayOfWeek + CalendarConstants.CalendarAreaStartColumn);">
+            </div> 
         }
         
         @foreach(var time in _calendarTimes)
@@ -69,90 +69,70 @@
     private List<CalendarDate> _calendarDates = new List<CalendarDate>();
     private List<CalendarTime> _calendarTimes = new List<CalendarTime>();
     private List<DisplayAppointmentModel> _appointments = new List<DisplayAppointmentModel>();
-    private Timer _timer { get; } = new Timer { Interval = 60000 };
-    private DateTime _selectedDate = DateTime.Now;
-    private bool _shouldScrollToCurrentTime = false;
-    private int _currentDayOfWeek;
-    private int _selectedWeek = 0;
+    private CalendarOptions _calendarOptions = new CalendarOptions();
 
     protected override async Task OnInitializedAsync()
     {
-        _currentDayOfWeek = Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
-        _calendarDates = await Calendar.BuildCalendarDates(_currentDayOfWeek);
+        _calendarOptions.CurrentDayOfWeek = Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime.Now);
+        _calendarDates = await Calendar.BuildCalendarDates(_calendarOptions.CurrentDayOfWeek);
         _calendarTimes = await Calendar.BuildCalendarTimes();
 
         SetTimer();
-        _shouldScrollToCurrentTime = true;
+        _calendarOptions.ShouldScrollToCurrentTime = true;
 
-        await GetAppointmentsForSelectedWeek();
+        _appointments = await  Calendar.SetAppointmentsOnCalendar(_calendarDates);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_shouldScrollToCurrentTime)
+        if (_calendarOptions.ShouldScrollToCurrentTime)
         {
             await JSRuntime.InvokeVoidAsync("scrollIntoView", "current-hour");
-            _shouldScrollToCurrentTime = false;
+            _calendarOptions.ShouldScrollToCurrentTime = false;
         }
     }
 
     public async Task SetCalendarForSelectedDate(DateTime selectedDateTime)
     {
-        var calendarWeek = CalendarControls.SetCalendarForSelectedWeek(_calendarDates, selectedDateTime, _currentDayOfWeek);
+        var calendarWeek = CalendarControls.SetCalendarForSelectedWeek(_calendarDates, selectedDateTime, _calendarOptions.CurrentDayOfWeek);
         _calendarDates = calendarWeek.CalendarDates;
-        _selectedWeek = calendarWeek.SelectedWeek;
-        await GetAppointmentsForSelectedWeek();
+        _calendarOptions.SelectedWeek = calendarWeek.SelectedWeek;
+        _appointments = await Calendar.SetAppointmentsOnCalendar(_calendarDates);
 
         StateHasChanged();
     }
 
     public async Task RefreshCalendar()
     {
-        await GetAppointmentsForSelectedWeek();
+        _appointments = await Calendar.SetAppointmentsOnCalendar(_calendarDates);
         StateHasChanged();
-    }
-
-    private async Task GetAppointmentsForSelectedWeek()
-    {
-        _appointments = await AppointmentDataService.GetAppointmentsInRange(new AppointmentsRange
-        {
-            StartDate = _calendarDates.First().Date, 
-            EndDate = _calendarDates.Last().Date
-        });
-
-        foreach(var appointment in _appointments)
-        {            
-            appointment.DayOfWeek = Calendar.GetDayOfWeekWithMondayAsFirstDayOfTheWeek(appointment.StartDate);
-            appointment.StartRow = Calendar.CalculateAppointmentDisplayRow(appointment.StartDate);
-            appointment.EndRow = Calendar.CalculateAppointmentDisplayRow(appointment.EndDate);
-        }      
     }
 
     private async Task NextWeek()
     {
-        _selectedWeek++;
-        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, true, _currentDayOfWeek);
-        await GetAppointmentsForSelectedWeek();
+        _calendarOptions.SelectedWeek++;
+        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _calendarOptions.SelectedWeek, true, _calendarOptions.CurrentDayOfWeek);
+        _appointments = await Calendar.SetAppointmentsOnCalendar(_calendarDates);
     }
 
     private async Task PreviousWeek()
     {
-        _selectedWeek--;
-        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _selectedWeek, false, _currentDayOfWeek);
-        await GetAppointmentsForSelectedWeek();
+        _calendarOptions.SelectedWeek--;
+        _calendarDates = CalendarControls.SwitchWeek(_calendarDates, _calendarOptions.SelectedWeek, false, _calendarOptions.CurrentDayOfWeek);
+        _appointments = await Calendar.SetAppointmentsOnCalendar(_calendarDates);
     }
 
     private async Task CurrentWeek()
     {        
-        _selectedWeek = 0;
-        _calendarDates = CalendarControls.SetCurrentWeek(_calendarDates, _currentDayOfWeek);
-        await GetAppointmentsForSelectedWeek();
+        _calendarOptions.SelectedWeek = 0;
+        _calendarDates = CalendarControls.SetCurrentWeek(_calendarDates, _calendarOptions.CurrentDayOfWeek);
+        _appointments = await Calendar.SetAppointmentsOnCalendar(_calendarDates);
     }
 
     private void SetTimer()
     {
-        _timer.Elapsed += async (_, _) => await SetCurrentHourAndMinuteRowEvent(_calendarTimes);
-        _timer.Start();
+        _calendarOptions.CalendarRefreshTimer.Elapsed += async (_, _) => await SetCurrentHourAndMinuteRowEvent(_calendarTimes);
+        _calendarOptions.CalendarRefreshTimer.Start();
     }
 
     private async Task SetCurrentHourAndMinuteRowEvent(List<CalendarTime> calendarTimes)
@@ -163,6 +143,6 @@
 
     public void Dispose()
     {
-        _timer?.Dispose();
+        _calendarOptions.CalendarRefreshTimer?.Dispose();
     }
 }

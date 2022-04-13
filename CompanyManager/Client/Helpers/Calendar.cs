@@ -1,4 +1,5 @@
-﻿using CompanyManager.Client.Models;
+﻿using CompanyManager.Client.DataServices;
+using CompanyManager.Client.Models;
 using CompanyManager.Shared;
 
 namespace CompanyManager.Client.Helpers
@@ -9,11 +10,18 @@ namespace CompanyManager.Client.Helpers
         Task<List<CalendarTime>> BuildCalendarTimes();
         int GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime);
         Task<List<CalendarTime>> SetCurrentHourAndMinuteRow(List<CalendarTime> calendarTimes);
-        int CalculateAppointmentDisplayRow(DateTime dateTime);
+        Task<List<DisplayAppointmentModel>> SetAppointmentsOnCalendar(List<CalendarDate> calendarDates);
     }
 
     public class Calendar : ICalendar
     {
+        private readonly IAppointmentDataService _appointmentDataService;
+
+        public Calendar(IAppointmentDataService appointmentDataService)
+        {
+            _appointmentDataService = appointmentDataService;
+        }
+
         public Task<List<CalendarDate>> BuildCalendarDates(int currentDayOfWeek)
         {
             const int dateColumnStart = 2;
@@ -41,9 +49,8 @@ namespace CompanyManager.Client.Helpers
 
         public int GetDayOfWeekWithMondayAsFirstDayOfTheWeek(DateTime dateTime)
         {
-            var dayOfWeek = (int)dateTime.DayOfWeek - 1;
             const int sundayAsLastDayOfWeek = 6;
-
+            var dayOfWeek = (int)dateTime.DayOfWeek - 1;
             if (dayOfWeek < 0)
             {
                 dayOfWeek = sundayAsLastDayOfWeek;
@@ -54,9 +61,9 @@ namespace CompanyManager.Client.Helpers
 
         public Task<List<CalendarTime>> BuildCalendarTimes()
         {
-            var calendarTimes = new List<CalendarTime>();
             var dateTimeNow = DateTime.Now;
             var currentHourRow = dateTimeNow.Hour * CalendarConstants.GridHourRows;
+            var calendarTimes = new List<CalendarTime>();
 
             for (var i = 0; i < CalendarConstants.GridTotalRows; i = i + CalendarConstants.GridHourRows)
             {
@@ -102,7 +109,25 @@ namespace CompanyManager.Client.Helpers
             return Task.FromResult(calendarTimes);
         }
 
-        public int CalculateAppointmentDisplayRow(DateTime dateTime)
+        public async Task<List<DisplayAppointmentModel>> SetAppointmentsOnCalendar(List<CalendarDate> calendarDates)
+        {
+            var appointments = await _appointmentDataService.GetAppointmentsInRange(new AppointmentsRange
+            {
+                StartDate = calendarDates.First().Date,
+                EndDate = calendarDates.Last().Date
+            });
+
+            foreach (var appointment in appointments)
+            {
+                appointment.DayOfWeek = GetDayOfWeekWithMondayAsFirstDayOfTheWeek(appointment.StartDate);
+                appointment.StartRow = CalculateAppointmentDisplayRow(appointment.StartDate);
+                appointment.EndRow = CalculateAppointmentDisplayRow(appointment.EndDate);
+            }
+
+            return appointments;
+        }
+
+        private int CalculateAppointmentDisplayRow(DateTime dateTime)
         {
             var hourRow = (CalendarConstants.GridHourRows * dateTime.Hour) + CalendarConstants.InitialTimeRow;
             var minuteRow = dateTime.Minute / CalendarConstants.MinutesSampling;

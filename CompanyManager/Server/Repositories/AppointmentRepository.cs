@@ -24,7 +24,7 @@ namespace CompanyManager.Server.Repositories
         public async Task<List<Appointment>> GetAppointmentsInRangeHourlyAccuracy(DateTime startDate, DateTime endDate)
         {
             var appointments = await _dbContext.Appointments
-                .Where(a => (a.StartDate <= startDate && a.EndDate > startDate) || a.StartDate < endDate)
+                .Where(a => (a.StartDate <= startDate && a.EndDate > startDate) || (a.StartDate < endDate && a.EndDate >= endDate))
                 .ToListAsync();
 
             return appointments;

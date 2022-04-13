@@ -23,19 +23,22 @@ namespace CompanyManager.Server.Repositories
 
         public async Task<List<Customer>> GetCustomersByName(string searchValue)
         {             
-            var customers = await _dbContext.Customers.Where(c => c.Name.Contains(searchValue) || c.Surname.Contains(searchValue)).OrderBy(c => c.Surname).Take(5).ToListAsync();           
+            var customers = await _dbContext.Customers.Where(c => c.Name.Contains(searchValue) || c.Surname.Contains(searchValue)).OrderBy(c => c.Surname).Take(5).ToListAsync();    
+            
             return customers;
         }
 
         public async Task<List<Customer>> GetCustomersByPhone(string phoneNumber)
         {            
-            var customers = await _dbContext.Customers.Where(c => c.Phone.Contains(phoneNumber)).OrderBy(c => c.Surname).Take(5).ToListAsync();    
+            var customers = await _dbContext.Customers.Where(c => c.Phone.Contains(phoneNumber)).OrderBy(c => c.Surname).Take(5).ToListAsync();  
+            
             return customers;
         }
 
         public Task<Customer?> GetCustomerByPhone(string phoneNumber)
         {
             var customer = _dbContext.Customers.SingleOrDefault(c => c.Phone == phoneNumber);
+
             return Task.FromResult(customer);
         }
 

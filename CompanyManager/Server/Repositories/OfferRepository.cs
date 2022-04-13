@@ -21,6 +21,7 @@ namespace CompanyManager.Server.Repositories
         public IQueryable<Offer> GetAllOffers()
         {
             var offers = _dbContext.Offers.Include(o => o.OfferCategory);
+
             return offers;
         }
     }

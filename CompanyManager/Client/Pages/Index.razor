@@ -6,7 +6,7 @@
 <div class="calendar-control-panel">
     <div class="calendar-controls">
         <MudDatePicker PickerVariant="PickerVariant.Static" Date="@_dateTimeSelected" DateChanged="OnDateChange" />
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" @onclick="OpenDialog">Dodaj +</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Large" @onclick="OpenAddAppointmentForm">Dodaj +</MudButton>
     </div>
     <div class="calendar-wrapper">
         <CalendarComponent @ref="_calendarComponent" />
@@ -23,7 +23,7 @@
         await _calendarComponent.SetCalendarForSelectedDate(_dateTimeSelected);
     }
 
-    private async Task OpenDialog()
+    private async Task OpenAddAppointmentForm()
     {
         var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
         var parameters = new DialogParameters();

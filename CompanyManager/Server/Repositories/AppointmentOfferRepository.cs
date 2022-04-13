@@ -6,7 +6,7 @@ namespace CompanyManager.Server.Repositories
     public interface IAppointmentOfferRepository
     {
         Task<bool> CreateAppointmentWithOffers(IEnumerable<AppointmentOffer> appointmentOffers);
-        Task<bool> EditAppointmentWithOffers(
+        Task<bool> UpdateAppointmentWithOffers(
             IEnumerable<AppointmentOffer> appointmentOffersToCreate,
             IEnumerable<AppointmentOffer> appointmentOffersToUpdate,
             IEnumerable<AppointmentOffer> appointmentOffersToDelete);
@@ -29,7 +29,7 @@ namespace CompanyManager.Server.Repositories
             return result;            
         }
 
-        public async Task<bool> EditAppointmentWithOffers(
+        public async Task<bool> UpdateAppointmentWithOffers(
             IEnumerable<AppointmentOffer> appointmentOffersToCreate, 
             IEnumerable<AppointmentOffer> appointmentOffersToUpdate, 
             IEnumerable<AppointmentOffer> appointmentOffersToDelete)

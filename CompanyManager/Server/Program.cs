@@ -38,6 +38,7 @@ builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddTransient<IAppointmentOfferRepository, AppointmentOfferRepository>();
 builder.Services.AddTransient<IAppointmentValidator, AppointmentValidator>();
 builder.Services.AddTransient<ICustomerValidator, CustomerValidator>();
+builder.Services.AddTransient<IAppointmentsOffersService, AppointmentsOffersService>();
 
 var app = builder.Build();
 

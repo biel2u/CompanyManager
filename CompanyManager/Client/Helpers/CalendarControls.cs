@@ -33,7 +33,6 @@ namespace CompanyManager.Client.Helpers
             foreach (var day in calendarDates)
             {
                 var date = day.Date.AddDays(daysToAdd);
-
                 day.Date = date;
                 day.DisplayedDate = date.ToString(CalendarConstants.DateTimeFormat);
                 day.IsCurrentDay = false;
@@ -64,7 +63,8 @@ namespace CompanyManager.Client.Helpers
         public CalendarWeek SetCalendarForSelectedWeek(List<CalendarDate> calendarDates, DateTime selectedDateTime, int currentDayOfWeek)
         {
             var dayDiff = (selectedDateTime - DateTime.Today).Days;
-            var selectedWeek = (Math.Abs(dayDiff) + currentDayOfWeek) / 7;
+            var daysInWeek = 7;
+            var selectedWeek = (Math.Abs(dayDiff) + currentDayOfWeek) / daysInWeek;
 
             if (selectedWeek > 0)
             {

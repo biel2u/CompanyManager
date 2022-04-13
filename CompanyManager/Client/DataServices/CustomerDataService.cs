@@ -6,7 +6,7 @@ namespace CompanyManager.Client.DataServices
     public interface ICustomerDataService
     {
         Task<List<string>> SearchCustomers(string searchValue);
-        Task<HttpResponseMessage> Create(EditCustomerModel customer);
+        Task<HttpResponseMessage> CreateCustomer(EditCustomerModel customer);
     }
     public class CustomerDataService : ICustomerDataService
     {
@@ -26,7 +26,7 @@ namespace CompanyManager.Client.DataServices
             return response ?? new List<string>();          
         }
 
-        public async Task<HttpResponseMessage> Create(EditCustomerModel customer)
+        public async Task<HttpResponseMessage> CreateCustomer(EditCustomerModel customer)
         {
             var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateCustomer", customer);
             return resposne;

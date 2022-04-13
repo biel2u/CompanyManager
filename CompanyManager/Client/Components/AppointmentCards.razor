@@ -1,6 +1,7 @@
 ﻿@using CompanyManager.Client.DataServices
+@using CompanyManager.Client.Helpers
 @using CompanyManager.Shared
-@inject IDialogService DialogService
+@inject IDialogProvider DialogProvider;
 @inject IAppointmentDataService AppointmentDataService
 @inject ISnackbar Snackbar
 
@@ -38,12 +39,7 @@
 
     private async Task DeleteAppointment(DisplayAppointmentModel appointment)
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true};
-        var parameters = new DialogParameters();
-        var formattedAppointmentDate = appointment.StartDate.ToString("dd/MM HH:mm");
-        parameters.Add("DialogContent", $"Czy na pewno chcesz usunąć wizytę z dnia {formattedAppointmentDate} dla {appointment.ClientName}?");
-
-        var dialog = DialogService.Show<DeleteConfirmationDialog>("Usuń wizytę", parameters, options);
+        var dialog = DialogProvider.ServeDeleteAppointmentDialog(appointment);
         var result = await dialog.Result;
 
         if (result.Cancelled == false)
@@ -60,12 +56,7 @@
 
     private async Task EditAppointment(DisplayAppointmentModel appointment)
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Large, FullWidth = true };
-        var parameters = new DialogParameters();
-        parameters.Add("SelectedDate", appointment.StartDate.Date);
-        parameters.Add("AppointmentIdToEdit", appointment.Id);
-
-        var dialog = DialogService.Show<EditAppointmentModal>("Edytuj wizytę", parameters, options);
+        var dialog = DialogProvider.ServeEditAppointmentDialog(appointment);
         var result = await dialog.Result;
 
         if (result.Cancelled == false)

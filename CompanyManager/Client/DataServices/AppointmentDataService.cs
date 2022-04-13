@@ -33,16 +33,28 @@ namespace CompanyManager.Client.DataServices
         {
             if(appointment.Id == null)
             {
-                var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);
+                var resposne = await CreateAppointment(appointment);
                 return resposne;
             }
             else
             {
-                var serializedAppointment = JsonSerializer.Serialize(appointment);
-                var content = new StringContent(serializedAppointment, Encoding.UTF8, "application/json-patch+json");
-                var resposne = await _http.PatchAsync($"{ControllerName}/UpdateAppointment", content);
+                var resposne = await UpdateAppointment(appointment);
                 return resposne;
             }
+        }
+
+        private async Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment)
+        {
+            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);
+            return resposne;
+        }
+
+        private async Task<HttpResponseMessage> UpdateAppointment(EditAppointmentModel appointment)
+        {
+            var serializedAppointment = JsonSerializer.Serialize(appointment);
+            var content = new StringContent(serializedAppointment, Encoding.UTF8, "application/json-patch+json");
+            var resposne = await _http.PatchAsync($"{ControllerName}/UpdateAppointment", content);
+            return resposne;
         }
 
         public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)

@@ -2,15 +2,12 @@
 using CompanyManager.Server.Helpers;
 using CompanyManager.Shared;
 using CompanyManager.Server.Models;
-using Microsoft.EntityFrameworkCore;
-using AutoMapper;
 
 namespace CompanyManager.Server.Services
 {
     public interface IAppointmentService
     {
         Task<EditAppointmentModel> GetAppointment(int? appointmentId);
-        Task<bool> CreateAppointment(EditAppointmentModel appointment);
         Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
         Task<bool> DeleteAppointment(int id);
         Task<bool> UpdateAppointment(EditAppointmentModel appointment);
@@ -20,25 +17,19 @@ namespace CompanyManager.Server.Services
     {
         private readonly IDateTimeProvider _dateTimeProvider;
         private readonly IAppointmentRepository _appointmentRepository;
-        private readonly IOfferRepository _offerRepository;
         private readonly ICustomerService _customerService;
-        private readonly IMapper _mapper;
-        private readonly IAppointmentOfferRepository _appointmentOfferRepository;
+        private readonly IAppointmentsOffersService _appointmentsOffersService;
 
         public AppointmentService(
             IDateTimeProvider dateTimeProvider,
             IAppointmentRepository appointmentRepository,
-            IOfferRepository offerRepository,
             ICustomerService customeService,
-            IMapper mapper, 
-            IAppointmentOfferRepository appointmentOfferRepository)
+            IAppointmentsOffersService appointmentsOffersService)
         {
             _dateTimeProvider = dateTimeProvider;
             _appointmentRepository = appointmentRepository;
-            _offerRepository = offerRepository;
             _customerService = customeService;
-            _mapper = mapper;
-            _appointmentOfferRepository = appointmentOfferRepository;
+            _appointmentsOffersService = appointmentsOffersService;
         }
 
         public async Task<EditAppointmentModel> GetAppointment(int? appointmentId)
@@ -69,29 +60,10 @@ namespace CompanyManager.Server.Services
             appointment.CustomerNameAndPhone = _customerService.CreateCustomerNameWithPhoneNumber(dbAppointment.Customer);
             appointment.Note = dbAppointment.Note;
             appointment.Confirmed = dbAppointment.Status == AppointmentStatus.Confirmed;
-            appointment.Offers = GetAppointmentOffers(dbAppointment.AppointmentOffers);
+            appointment.Offers = _appointmentsOffersService.GetSelectedAppointmentsOffers(dbAppointment.AppointmentOffers);
 
             return appointment;
-        }
-
-        private List<DisplayOfferModel> GetAppointmentOffers(IEnumerable<AppointmentOffer> appointmentOffers)
-        {
-            var selectedOffers = new List<DisplayOfferModel>();
-
-            foreach(var appointmentOffer in appointmentOffers)
-            {
-                selectedOffers.Add(new DisplayOfferModel
-                { 
-                    Id = appointmentOffer.OfferId,
-                    IsSelected = true,
-                    Name = appointmentOffer.Offer.Name,
-                    Price = appointmentOffer.CustomOfferPrice,
-                    TimeInMinutes = appointmentOffer.CustomOfferTime,
-                });
-            }
-
-            return selectedOffers;
-        }
+        }       
 
         private EditAppointmentModel GetAppointmentToCreate()
         {
@@ -126,33 +98,11 @@ namespace CompanyManager.Server.Services
             }
 
             return appointmentsToDisplay;
-        }               
-
-        public async Task<bool> CreateAppointment(EditAppointmentModel appointment)
-        {
-            var customer = await _customerService.GetCustomerByExtractedPhoneNumber(appointment.CustomerNameAndPhone);
-
-            if (customer == null) return false;
-
-            var newAppointment = new Appointment
-            {
-                StartDate = appointment.StartDate + appointment.Time,
-                EndDate = appointment.EndDate,
-                Note = appointment.Note,
-                Status = appointment.Confirmed ? AppointmentStatus.Confirmed : AppointmentStatus.Pending,
-                CustomerId = customer.Id,
-            };
-
-            var offers = await _offerRepository.GetAllOffers().ToListAsync();
-                 
-            var result = await CreateAppointmentWithOffers(appointment.Offers, newAppointment, offers);
-            return result;           
-        }
+        }                       
 
         public async Task<bool> UpdateAppointment(EditAppointmentModel appointment)
         {
             var customer = await _customerService.GetCustomerByExtractedPhoneNumber(appointment.CustomerNameAndPhone);
-
             if (customer == null || appointment?.Id == null) return false;
 
             var dbAppointment = await _appointmentRepository.GetAppointment(appointment.Id.Value);
@@ -160,80 +110,17 @@ namespace CompanyManager.Server.Services
             dbAppointment.StartDate = appointment.StartDate + appointment.Time;
             dbAppointment.EndDate = appointment.EndDate;
             dbAppointment.Note = appointment.Note;
-            dbAppointment.CustomerId = customer.Id; //mapper
+            dbAppointment.CustomerId = customer.Id;
 
-            var result = await UpdateAppointmentsOffers(appointment.Offers, dbAppointment);
+            var result = await _appointmentsOffersService.UpdateAppointmentWithOffers(appointment.Offers, dbAppointment);
+
             return result;
-        }
-
-        private async Task<bool> UpdateAppointmentsOffers(List<DisplayOfferModel> currentOffers, Appointment appointment)
-        {
-            var editedAppointmentOffers = new List<AppointmentOffer>();
-
-            foreach (var offer in currentOffers)
-            {
-                var editedOffer = appointment.AppointmentOffers.SingleOrDefault(e => e.OfferId == offer.Id);
-                if (editedOffer != null)
-                {
-                    editedOffer.CustomOfferPrice = offer.Price;
-                    editedOffer.CustomOfferTime = offer.TimeInMinutes;
-
-                    editedAppointmentOffers.Add(editedOffer);
-                }
-            }
-
-            var deletedAppointmentOffers = appointment.AppointmentOffers.Where(s => currentOffers.Any(e => e.Id == s.OfferId) == false).ToList();
-            var newOffers = currentOffers.Where(s => appointment.AppointmentOffers.Any(e => e.OfferId == s.Id) == false).ToList();
-            var newAppointmentOffers = IncludeNewOffersToAppointment(newOffers, appointment);
-
-            var appointmentWithOffers = await _appointmentOfferRepository.EditAppointmentWithOffers(newAppointmentOffers, editedAppointmentOffers, deletedAppointmentOffers);
-            return appointmentWithOffers;
-        }
-
-        private async Task<bool> CreateAppointmentWithOffers(List<DisplayOfferModel> selectedOffers, Appointment appointment, List<Offer> offers)
-        {
-            var appointmentOffers = BuildAppointmentOffers(selectedOffers, appointment, offers);
-            var createdAppointment = await _appointmentOfferRepository.CreateAppointmentWithOffers(appointmentOffers);
-            return createdAppointment;
-        }
-
-        private List<AppointmentOffer> BuildAppointmentOffers(List<DisplayOfferModel> selectedOffers, Appointment appointment, List<Offer> offers)
-        {
-            var appointmentOffers = new List<AppointmentOffer>();
-            foreach (var offer in selectedOffers)
-            {
-                appointmentOffers.Add(new AppointmentOffer
-                {
-                    CustomOfferPrice = offer.Price,
-                    CustomOfferTime = offer.TimeInMinutes,
-                    Offer = offers.Single(o => o.Id == offer.Id),
-                    Appointment = appointment
-                });
-            }
-
-            return appointmentOffers;
-        }
-
-        private List<AppointmentOffer> IncludeNewOffersToAppointment(List<DisplayOfferModel> newOffers, Appointment appointment)
-        {
-            var appointmentOffers = new List<AppointmentOffer>();
-            foreach (var offer in newOffers)
-            {
-                appointmentOffers.Add(new AppointmentOffer
-                {
-                    CustomOfferPrice = offer.Price,
-                    CustomOfferTime = offer.TimeInMinutes,
-                    OfferId = offer.Id,
-                    AppointmentId = appointment.Id,
-                });
-            }
-
-            return appointmentOffers;
-        }
+        }     
 
         public async Task<bool> DeleteAppointment(int id)
         {
             var result = await _appointmentRepository.DeleteAppointment(id);
+
             return result;
         }
     }

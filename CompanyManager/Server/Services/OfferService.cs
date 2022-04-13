@@ -23,27 +23,34 @@ namespace CompanyManager.Server.Services
 
         public async Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory(IEnumerable<DisplayOfferModel>? selectedOffers)
         {
-            var offers = await _offerRepository.GetAllOffers().ToListAsync();          
+            var offersByCategory = await GroupOffersByCategory();
+            if(selectedOffers != null && selectedOffers.Any())
+            {
+                UpdateSelectedOffers(offersByCategory, selectedOffers);
+            }
+
+            return offersByCategory;          
+        }
+
+        private async Task<List<OffersGroup>> GroupOffersByCategory()
+        {
+            var offers = await _offerRepository.GetAllOffers().ToListAsync();
+
             var offersGrouped = offers.GroupBy(o => o.OfferCategory.Name).Select(grp => grp);
-            var offersViewModel = new List<OffersGroup>();
+            var offersByCategory = new List<OffersGroup>();
 
             foreach (var group in offersGrouped)
             {
                 var offersInGroup = group.AsEnumerable();
 
-                offersViewModel.Add(new OffersGroup
+                offersByCategory.Add(new OffersGroup
                 {
                     OfferGroupName = group.Key,
                     Offers = _mapper.Map<IEnumerable<DisplayOfferModel>>(offersInGroup)
                 });
             }
 
-            if(selectedOffers != null && selectedOffers.Any())
-            {
-                UpdateSelectedOffers(offersViewModel, selectedOffers);
-            }
-
-            return offersViewModel;          
+            return offersByCategory;
         }
 
         private void UpdateSelectedOffers(IEnumerable<OffersGroup> offersGroups, IEnumerable<DisplayOfferModel> selectedOffers)

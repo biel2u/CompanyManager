@@ -1,12 +1,14 @@
 ﻿@using CompanyManager.Client.DataServices
 @using CompanyManager.Client.Helpers
+@using CompanyManager.Client.Models
 @using CompanyManager.Shared
 @using System.Net
-@inject ICustomerDataService CustomerDataService
+@inject ICustomerDataService CustomerDataService;
 @inject IAppointmentDataService AppointmentDataService; 
 @inject IOfferDataService OfferDataService;
 @inject ISnackbar Snackbar
 @inject IOfferSelector OfferSelector;
+@inject IAppointmentSummarizeService AppointmetSummarizeService;
 
 <EditForm Model="@_appointment" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator/>
@@ -17,7 +19,7 @@
             <div class="content-wrapper">
                 <div class="base-data-wrapper">
                     <MudDatePicker Label="Data*" Date="@SelectedDate" DateChanged="@UpdateStartDate"/>
-                    <MudTimePicker Label="Godzina*" Time="@_appointmentTime" TimeChanged="@UpdateTime" />
+                    <MudTimePicker Label="Godzina*" Time="@_appointmentSummary.AppointmentTime" TimeChanged="@UpdateTime" />
                     <MudAutocomplete T="string" Label="Klient*" @bind-Value="_appointment.CustomerNameAndPhone" 
                         SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
                     <a href="/customer" target="_blank"><MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton></a>
@@ -63,9 +65,9 @@
             <div class="appointment-summary">
                 @if(_appointment.Offers != null && _appointment.Offers.Any())
                 {
-                    <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_summarizedCost złoty</div>
+                    <div><MudIcon Icon="@Icons.Filled.AttachMoney" Color="Color.Primary" /> @_appointmentSummary.SummarizedCost złoty</div>
                     <div>
-                        <MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointmentTime.ToString(@"hh\:mm") - @_appointment.EndDate.ToString("HH:mm")
+                        <MudIcon Icon="@Icons.Filled.AccessTime" Color="Color.Info" /> @_appointmentSummary.AppointmentTime.ToString(@"hh\:mm") - @_appointment.EndDate.ToString("HH:mm")
                     </div>
                 }
             </div> 
@@ -89,15 +91,12 @@
     private string _offerSearchValue = string.Empty;
     private EditAppointmentModel _appointment = new EditAppointmentModel();
     private IEnumerable<OffersGroup> _offerGroups = Enumerable.Empty<OffersGroup>();
-    private decimal _summarizedCost = 0;
-    private int _summarizedTime = 0;
-    private TimeSpan _appointmentTime;
+    private AppointmentSummary _appointmentSummary = new AppointmentSummary();
 
     protected override async Task OnInitializedAsync()
     {
         _appointment = await AppointmentDataService.GetAppointment(AppointmentIdToEdit);
-        _appointmentTime = _appointment.Id != null ? _appointment.StartDate.TimeOfDay : DateTime.Now.TimeOfDay;
-
+        _appointmentSummary.AppointmentTime = _appointment.Id != null ? _appointment.StartDate.TimeOfDay : DateTime.Now.TimeOfDay;
         _offerGroups = await OfferDataService.GetOffers(_appointment?.Offers);
     }
 
@@ -106,44 +105,26 @@
         selectedOffer.IsSelected = isSelected;
         _appointment.Offers = await OfferSelector.BuildSelectedOffersCollection(selectedOffer, _appointment.Offers);
 
-        await UpdateSummarize();
+        UpdateSummarize();
     }
 
-    private async Task UpdateSummarize()
+    private void UpdateSummarize()
     {
-        _summarizedCost = 0;
-        _summarizedTime = 0;
-
-        foreach(var offer in _appointment.Offers)
-        {
-            _summarizedTime += offer.TimeInMinutes;
-            _summarizedCost += offer.Price;
-        }
-
-        await UpdateAppointmentDates();
+        _appointmentSummary = AppointmetSummarizeService.UpdateSummarize(_appointmentSummary, _appointment.Offers);
+        _appointment = AppointmetSummarizeService.SummarizeAppointment(_appointment, SelectedDate, _appointmentSummary);        
     }
 
-    private async Task UpdateStartDate(DateTime? newDate)
+    private void UpdateStartDate(DateTime? newDate)
     {
         SelectedDate = newDate ?? DateTime.Now;
-        await UpdateAppointmentDates();
+        _appointment = AppointmetSummarizeService.SummarizeAppointment(_appointment, SelectedDate, _appointmentSummary);        
     }
 
-    private async Task UpdateTime(TimeSpan? newTime)
+    private void UpdateTime(TimeSpan? newTime)
     {
-        _appointmentTime = newTime ?? DateTime.Now.TimeOfDay;
-        await UpdateAppointmentDates();
-    }
-
-    private Task UpdateAppointmentDates()
-    {
-        _appointment.StartDate = SelectedDate;
-        _appointment.Time = _appointmentTime;
-        var endTime = _appointmentTime.Add(TimeSpan.FromMinutes(_summarizedTime));
-        _appointment.EndDate = SelectedDate + endTime;
-
-        return Task.CompletedTask;
-    }
+        _appointmentSummary.AppointmentTime = newTime ?? DateTime.Now.TimeOfDay;
+        _appointment = AppointmetSummarizeService.SummarizeAppointment(_appointment, SelectedDate, _appointmentSummary);        
+    }  
 
     private async Task<IEnumerable<string>> SearchCustomer(string searchValue)
     {

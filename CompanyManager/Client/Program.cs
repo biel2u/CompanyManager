@@ -25,6 +25,8 @@ builder.Services.AddTransient<IOfferDataService, OfferDataService>();
 builder.Services.AddTransient<ICalendar, Calendar>();
 builder.Services.AddTransient<ICalendarControls, CalendarControls>();
 builder.Services.AddTransient<IOfferSelector, OfferSelector>();
+builder.Services.AddTransient<IDialogProvider, DialogProvider>();
+builder.Services.AddTransient<IAppointmentSummarizeService, AppointmentSummarizeService>();
 
 builder.Services.AddMudServices();
 

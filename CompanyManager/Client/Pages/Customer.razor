@@ -27,7 +27,7 @@
 
     private async Task HandleValidSubmit()
     {
-        var response = await CustomerDataService.Create(_customer);
+        var response = await CustomerDataService.CreateCustomer(_customer);
         var errors = await response.Content.ReadFromJsonAsync<Dictionary<string, List<string>>>();
 
         if (response.StatusCode == HttpStatusCode.BadRequest && errors != null && errors.Any())
@@ -36,6 +36,7 @@
         }
         else if (response.IsSuccessStatusCode)
         {
+            _customer = new EditCustomerModel();
             Snackbar.Add("Klient został zapisany.", Severity.Success);
         }
     }

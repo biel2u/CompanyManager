@@ -12,12 +12,14 @@ namespace CompanyManager.Server.Controllers
     public class AppointmentController : ControllerBase
     {
         private IAppointmentService _appointmentService;
+        private IAppointmentsOffersService _appointmentsOffersService;
         private IAppointmentValidator _appointmentValidator;
 
-        public AppointmentController(IAppointmentService appointmentService, IAppointmentValidator appointmentValidator)
+        public AppointmentController(IAppointmentService appointmentService, IAppointmentValidator appointmentValidator, IAppointmentsOffersService appointmentsOffersService)
         {
             _appointmentService = appointmentService;
             _appointmentValidator = appointmentValidator;
+            _appointmentsOffersService = appointmentsOffersService;
         }
 
         [HttpGet]
@@ -43,7 +45,7 @@ namespace CompanyManager.Server.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _appointmentService.CreateAppointment(appointment);
+            var result = await _appointmentsOffersService.CreateAppointmentWithOffers(appointment);
             return result ? Ok(ModelState) : BadRequest(ModelState);
         }
 

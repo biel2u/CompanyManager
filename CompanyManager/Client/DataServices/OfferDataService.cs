@@ -21,6 +21,7 @@ namespace CompanyManager.Client.DataServices
         {
             var response = await _http.PostAsJsonAsync("Offer", selectedOffers);
             var result = await response.Content.ReadFromJsonAsync<IEnumerable<OffersGroup>>();
+
             return result ?? Enumerable.Empty<OffersGroup>();
         }
     }
