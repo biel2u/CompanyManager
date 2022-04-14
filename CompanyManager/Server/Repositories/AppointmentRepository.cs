@@ -9,7 +9,7 @@ namespace CompanyManager.Server.Repositories
         Task<List<Appointment>> GetAppointmentsInRangeHourlyAccuracy(DateTime startDate, DateTime endDate);
         Task<List<Appointment>> GetAppointmentsInRangeDailyAccuracy(DateTime startDate, DateTime endDate);
         Task<bool> DeleteAppointment(int id);
-        Task<Appointment> GetAppointment(int id);
+        Task<Appointment?> GetAppointment(int id);
     }
 
     public class AppointmentRepository : IAppointmentRepository
@@ -42,15 +42,15 @@ namespace CompanyManager.Server.Repositories
             return appointments;
         }
 
-        public async Task<Appointment> GetAppointment(int id)
+        public async Task<Appointment?> GetAppointment(int id)
         {
             var appointment = await _dbContext.Appointments
                 .Include(a => a.Customer)
                 .Include(a => a.AppointmentOffers)
                 .ThenInclude(a => a.Offer)
-                .FirstOrDefaultAsync(a => a.Id == id);
+                .SingleOrDefaultAsync(a => a.Id == id);
 
-            return appointment ?? new Appointment();
+            return appointment;
         }
 
         public async Task<bool> DeleteAppointment(int id)

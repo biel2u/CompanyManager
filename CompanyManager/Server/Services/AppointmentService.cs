@@ -7,7 +7,7 @@ namespace CompanyManager.Server.Services
 {
     public interface IAppointmentService
     {
-        Task<EditAppointmentModel> GetAppointment(int? appointmentId);
+        Task<EditAppointmentModel?> GetAppointment(int? appointmentId);
         Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange);
         Task<bool> DeleteAppointment(int id);
         Task<bool> UpdateAppointment(EditAppointmentModel appointment);
@@ -32,7 +32,7 @@ namespace CompanyManager.Server.Services
             _appointmentsOffersService = appointmentsOffersService;
         }
 
-        public async Task<EditAppointmentModel> GetAppointment(int? appointmentId)
+        public async Task<EditAppointmentModel?> GetAppointment(int? appointmentId)
         {
             if (appointmentId.HasValue)
             {
@@ -48,9 +48,11 @@ namespace CompanyManager.Server.Services
             }           
         }
 
-        private async Task<EditAppointmentModel> GetAppointmentToEdit(int appointmentId)
+        private async Task<EditAppointmentModel?> GetAppointmentToEdit(int appointmentId)
         {
             var dbAppointment = await _appointmentRepository.GetAppointment(appointmentId);
+            if (dbAppointment == null) return null;
+
             var appointment = new EditAppointmentModel();
 
             appointment.Id = dbAppointment.Id;
@@ -106,6 +108,8 @@ namespace CompanyManager.Server.Services
             if (customer == null || appointment?.Id == null) return false;
 
             var dbAppointment = await _appointmentRepository.GetAppointment(appointment.Id.Value);
+            if(dbAppointment == null) return false;
+
             dbAppointment.Status = appointment.Confirmed ? AppointmentStatus.Confirmed : AppointmentStatus.Pending;
             dbAppointment.StartDate = appointment.StartDate + appointment.Time;
             dbAppointment.EndDate = appointment.EndDate;

@@ -16,7 +16,7 @@ namespace CompanyManager.Client.DataServices
     public class AppointmentDataService : IAppointmentDataService
     {
         private readonly HttpClient _http;
-        private readonly string ControllerName = "Appointment";
+        private readonly string BaseUrl = "api/appointment";
 
         public AppointmentDataService(HttpClient http)
         {
@@ -25,7 +25,7 @@ namespace CompanyManager.Client.DataServices
 
         public async Task<EditAppointmentModel> GetAppointment(int? id)
         {            
-            var response = await _http.GetFromJsonAsync<EditAppointmentModel>($"{ControllerName}/GetAppointment?id={id}");
+            var response = await _http.GetFromJsonAsync<EditAppointmentModel>($"{BaseUrl}/{id}");
             return response ?? new EditAppointmentModel();          
         }
 
@@ -45,28 +45,32 @@ namespace CompanyManager.Client.DataServices
 
         private async Task<HttpResponseMessage> CreateAppointment(EditAppointmentModel appointment)
         {
-            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateAppointment", appointment);
+            var resposne = await _http.PostAsJsonAsync(BaseUrl, appointment);
+
             return resposne;
         }
 
         private async Task<HttpResponseMessage> UpdateAppointment(EditAppointmentModel appointment)
         {
             var serializedAppointment = JsonSerializer.Serialize(appointment);
-            var content = new StringContent(serializedAppointment, Encoding.UTF8, "application/json-patch+json");
-            var resposne = await _http.PatchAsync($"{ControllerName}/UpdateAppointment", content);
+            var content = new StringContent(serializedAppointment, Encoding.UTF8, "application/json");
+            var resposne = await _http.PutAsync(BaseUrl, content);
+
             return resposne;
         }
 
         public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
         {
-            var response = await _http.PostAsJsonAsync($"{ControllerName}/GetAppointmentsInRange", appointmentsRange);
+            var response = await _http.PostAsJsonAsync($"{BaseUrl}/range", appointmentsRange);
             var result = await response.Content.ReadFromJsonAsync<List<DisplayAppointmentModel>>();
+
             return result ?? new List<DisplayAppointmentModel>();
         }
 
         public async Task<HttpResponseMessage> DeleteAppointment(int id)
         {
-            var resposne = await _http.DeleteAsync($"{ControllerName}/DeleteAppointment?id={id}");
+            var resposne = await _http.DeleteAsync($"{BaseUrl}/{id}");
+
             return resposne;
         }
     }

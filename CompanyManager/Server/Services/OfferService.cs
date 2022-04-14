@@ -7,7 +7,7 @@ namespace CompanyManager.Server.Services
 {
     public interface IOfferService
     {
-        Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory(IEnumerable<DisplayOfferModel>? selectedOffers);
+        Task<List<OffersGroup>> GetAllOffersByParentCategory(List<DisplayOfferModel> selectedOffers);
     }
 
     public class OfferService : IOfferService
@@ -21,7 +21,7 @@ namespace CompanyManager.Server.Services
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<OffersGroup>> GetAllOffersByParentCategory(IEnumerable<DisplayOfferModel>? selectedOffers)
+        public async Task<List<OffersGroup>> GetAllOffersByParentCategory(List<DisplayOfferModel> selectedOffers)
         {
             var offersByCategory = await GroupOffersByCategory();
             if(selectedOffers != null && selectedOffers.Any())

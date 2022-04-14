@@ -1,15 +1,13 @@
 ﻿using CompanyManager.Server.Services;
 using CompanyManager.Server.Validators;
 using CompanyManager.Shared;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CompanyManager.Server.Controllers
 {
-    [Authorize]
-    [Route("[controller]/[action]")]
-    [ApiController]
-    public class CustomerController : ControllerBase
+    [Route("api/customer")]
+    public class CustomerController : ApiControllerBase
     {
         private readonly ICustomerService _customerService;
         private readonly ICustomerValidator _customerValidator;
@@ -20,15 +18,21 @@ namespace CompanyManager.Server.Controllers
             _customerValidator = customerValidator;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<string>>> SearchCustomers(string searchValue)
+        [HttpGet("{searchValue}")]
+        [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<ActionResult<List<string>>> GetByValue(string searchValue)
         {
-            var customersSelectorList = await _customerService.SearchCustomers(searchValue);
-            return Ok(customersSelectorList);
+            var customers = await _customerService.SearchCustomers(searchValue);
+            if(customers.Any() == false) return NoContent();
+
+            return Ok(customers);
         }
 
         [HttpPost]
-        public async Task<ActionResult<EditCustomerModel>> CreateCustomer([FromBody] EditCustomerModel customer)
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<EditCustomerModel>> Create([FromBody] EditCustomerModel customer)
         {
             await _customerValidator.SetModelStateErrors(customer, ModelState);
             if (ModelState.IsValid == false || customer == null || ModelState.ErrorCount > 0)
@@ -37,7 +41,8 @@ namespace CompanyManager.Server.Controllers
             }
           
             await _customerService.AddCustomer(customer);
-            return Ok(ModelState);
+
+            return Created("customer", ModelState);
         }
     }
 }

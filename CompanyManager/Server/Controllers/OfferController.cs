@@ -1,13 +1,10 @@
 ﻿using CompanyManager.Server.Services;
 using CompanyManager.Shared;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyManager.Server.Controllers
 {
-    [Authorize]
-    [Route("[controller]")]
-    [ApiController]
+    [Route("api/offer")]
     public class OfferController : ControllerBase
     {
         private readonly IOfferService _offerService;
@@ -18,9 +15,13 @@ namespace CompanyManager.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<IEnumerable<OffersGroup>>> GetOffers(IEnumerable<DisplayOfferModel>? selectedOffers)
+        [ProducesResponseType(typeof(List<OffersGroup>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<OffersGroup>>> GetOffers([FromBody] OffersRequest offersRequest)
         {
-            var offers = await _offerService.GetAllOffersByParentCategory(selectedOffers);
+            var offers = await _offerService.GetAllOffersByParentCategory(offersRequest.SelectedOffers);
+            if(offers.Any() == false) return NotFound();
+
             return Ok(offers);
         }
     }

@@ -1,15 +1,13 @@
 ﻿using CompanyManager.Server.Validators;
 using CompanyManager.Server.Services;
 using CompanyManager.Shared;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CompanyManager.Server.Controllers
 {
-    [Authorize]
-    [Route("[controller]/[action]")]
-    [ApiController]
-    public class AppointmentController : ControllerBase
+    [Route("api/appointment")]
+    public class AppointmentController : ApiControllerBase
     {
         private IAppointmentService _appointmentService;
         private IAppointmentsOffersService _appointmentsOffersService;
@@ -22,22 +20,32 @@ namespace CompanyManager.Server.Controllers
             _appointmentsOffersService = appointmentsOffersService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAppointment(int? id)
+        [HttpGet("{id?}")]
+        [ProducesResponseType(typeof(EditAppointmentModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Get(int? id)
         {
             var appointment = await _appointmentService.GetAppointment(id);
+            if (appointment == null) return NotFound();
+
             return Ok(appointment);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> GetAppointmentsInRange([FromBody] AppointmentsRange appointmentsRange)
+        [HttpPost("range")]
+        [ProducesResponseType(typeof(List<DisplayAppointmentModel>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> GetInRange([FromBody] AppointmentsRange appointmentsRange)
         {
             var appointments = await _appointmentService.GetAppointmentsInRange(appointmentsRange);
+            if (appointments.Any() == false) return NoContent();
+
             return Ok(appointments);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateAppointment([FromBody] EditAppointmentModel appointment)
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Create([FromBody] EditAppointmentModel appointment)
         {
             await _appointmentValidator.SetModelStateErrors(appointment, ModelState);
             if (appointment == null || ModelState.IsValid == false || ModelState.ErrorCount > 0)
@@ -46,11 +54,13 @@ namespace CompanyManager.Server.Controllers
             }
 
             var result = await _appointmentsOffersService.CreateAppointmentWithOffers(appointment);
-            return result ? Ok(ModelState) : BadRequest(ModelState);
+            return result ? Created("appointment", ModelState) : BadRequest(ModelState);
         }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateAppointment([FromBody] EditAppointmentModel appointment)
+        [HttpPut]
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update([FromBody] EditAppointmentModel appointment)
         {
             await _appointmentValidator.SetModelStateErrors(appointment, ModelState);
             if (appointment == null || ModelState.IsValid == false || ModelState.ErrorCount > 0)
@@ -62,8 +72,10 @@ namespace CompanyManager.Server.Controllers
             return result ? Ok(ModelState) : BadRequest(ModelState);
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAppointment(int id)
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Delete(int id)
         {
             var appointmentDeleted = await _appointmentService.DeleteAppointment(id);
             if (appointmentDeleted == false) return NotFound();

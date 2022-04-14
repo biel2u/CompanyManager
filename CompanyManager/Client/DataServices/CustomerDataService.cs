@@ -11,7 +11,7 @@ namespace CompanyManager.Client.DataServices
     public class CustomerDataService : ICustomerDataService
     {
         private readonly HttpClient _http;
-        private readonly string ControllerName = "Customer";
+        private readonly string BaseUrl = "api/customer";
 
         public CustomerDataService(HttpClient http)
         {
@@ -22,13 +22,13 @@ namespace CompanyManager.Client.DataServices
         {
             if (searchValue.Length < 2) return new List<string>();
 
-            var response = await _http.GetFromJsonAsync<List<string>>($"{ControllerName}/SearchCustomers?searchValue={searchValue}");           
+            var response = await _http.GetFromJsonAsync<List<string>>($"{BaseUrl}/{searchValue}");           
             return response ?? new List<string>();          
         }
 
         public async Task<HttpResponseMessage> CreateCustomer(EditCustomerModel customer)
         {
-            var resposne = await _http.PostAsJsonAsync($"{ControllerName}/CreateCustomer", customer);
+            var resposne = await _http.PostAsJsonAsync(BaseUrl, customer);
             return resposne;
         }
     }
