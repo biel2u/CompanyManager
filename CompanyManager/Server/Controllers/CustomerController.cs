@@ -1,10 +1,10 @@
-﻿using CompanyManager.Server.Services;
-using CompanyManager.Server.Validators;
+﻿using CompanyManager.Core.Services;
+using CompanyManager.Core.Validators;
 using CompanyManager.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace CompanyManager.Server.Controllers
+namespace CompanyManager.Api.Controllers
 {
     [Route("api/customer")]
     public class CustomerController : ApiControllerBase

@@ -8,6 +8,9 @@
         //Total calendar rows. GridHoursRows*HoursInDay (12*24=288).
         public static int GridTotalRows { get; } = 288;
 
+        //First column is hours section. 2-9 columns are for days, from monday to sunday
+        public static int GridTotalColumns { get; } = 9;
+
         //Set to "2" because first column is occupied by hours.
         public static int CalendarAreaStartColumn { get;  } = 2;
 

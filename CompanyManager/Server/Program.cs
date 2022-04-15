@@ -1,11 +1,8 @@
-using CompanyManager.Server.Data;
-using CompanyManager.Server.Helpers;
-using CompanyManager.Server.Models;
-using CompanyManager.Server.Repositories;
-using CompanyManager.Server.Services;
-using CompanyManager.Server.Validators;
+using CompanyManager.Core.Data;
+using CompanyManager.Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using CompanyManager.Core.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,19 +23,7 @@ builder.Services.AddAuthentication()
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
-builder.Services.AddTransient<IOfferRepository, OfferRepository>();
-builder.Services.AddTransient<ICustomerService, CustomerService>();
-builder.Services.AddTransient<IOfferService, OfferService>();
-builder.Services.AddTransient<IAppointmentService, AppointmentService>();
-builder.Services.AddTransient<IDateTimeProvider, DateTimeProvider>();
-builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
-builder.Services.AddTransient<IAppointmentOfferRepository, AppointmentOfferRepository>();
-builder.Services.AddTransient<IAppointmentValidator, AppointmentValidator>();
-builder.Services.AddTransient<ICustomerValidator, CustomerValidator>();
-builder.Services.AddTransient<IAppointmentsOffersService, AppointmentsOffersService>();
+builder.Services.AddCoreServices();
 
 var app = builder.Build();
 

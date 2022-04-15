@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CompanyManager.Server.Controllers
+namespace CompanyManager.Api.Controllers
 {
     [ApiController]
     [Authorize]

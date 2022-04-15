@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Diagnostics;
 
-namespace CompanyManager.Server.Pages
+namespace CompanyManager.Api.Pages
 {
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     [IgnoreAntiforgeryToken]

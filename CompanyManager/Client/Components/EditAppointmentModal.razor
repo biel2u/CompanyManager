@@ -22,12 +22,14 @@
                     <MudTimePicker Label="Godzina*" Time="@_appointmentSummary.AppointmentTime" TimeChanged="@UpdateTime" />
                     <MudAutocomplete T="string" Label="Klient*" @bind-Value="_appointment.CustomerNameAndPhone" 
                         SearchFunc="@SearchCustomer" ResetValueOnEmptyText="true" CoerceText="true" CoerceValue="false" />
-                    <a href="/customer" target="_blank"><MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton></a>
+                    <a href="/customer" target="_blank">
+                        <MudButton Variant="Variant.Outlined" EndIcon="@Icons.Outlined.OpenInNew" Color="Color.Primary">Nowy kilent</MudButton>
+                    </a>
                     <MudTextField T="string" Label="Notatka" Variant="Variant.Text" @bind-Value="_appointment.Note" Lines="5" />
                     <MudCheckBox Label="Wizyta potwierdzona" @bind-Checked="_appointment.Confirmed" Color="Color.Primary" Size="Size.Small" />
                 </div>
                 <div class="offers-wrapper">
-                    <input class="offer-input" @bind-Value="_offerSearchValue" @bind-Value:event="oninput" placeholder="Wyszukaj usługę..."></input>
+                    <input class="offer-input" @bind-Value="_offerSearchValue" @bind-Value:event="oninput" placeholder="Wyszukaj usługę..."/>
                     <div class="offers-container">
                         @foreach (var offerGroup in FilteredOffers)
                         {
@@ -97,7 +99,7 @@
     {
         _appointment = await AppointmentDataService.GetAppointment(AppointmentIdToEdit);
         _appointmentSummary.AppointmentTime = _appointment.Id != null ? _appointment.StartDate.TimeOfDay : DateTime.Now.TimeOfDay;
-        _offerGroups = await OfferDataService.GetOffers(_appointment?.Offers);
+        _offerGroups = await OfferDataService.GetOffers(_appointment.Offers);
     }
 
     private async Task OfferSelected(DisplayOfferModel selectedOffer, bool isSelected)

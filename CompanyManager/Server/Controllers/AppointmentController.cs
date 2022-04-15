@@ -1,17 +1,17 @@
-﻿using CompanyManager.Server.Validators;
-using CompanyManager.Server.Services;
+﻿using CompanyManager.Core.Validators;
+using CompanyManager.Core.Services;
 using CompanyManager.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace CompanyManager.Server.Controllers
+namespace CompanyManager.Api.Controllers
 {
     [Route("api/appointment")]
     public class AppointmentController : ApiControllerBase
     {
-        private IAppointmentService _appointmentService;
-        private IAppointmentsOffersService _appointmentsOffersService;
-        private IAppointmentValidator _appointmentValidator;
+        private readonly IAppointmentService _appointmentService;
+        private readonly IAppointmentsOffersService _appointmentsOffersService;
+        private readonly IAppointmentValidator _appointmentValidator;
 
         public AppointmentController(IAppointmentService appointmentService, IAppointmentValidator appointmentValidator, IAppointmentsOffersService appointmentsOffersService)
         {
@@ -33,11 +33,9 @@ namespace CompanyManager.Server.Controllers
 
         [HttpPost("range")]
         [ProducesResponseType(typeof(List<DisplayAppointmentModel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> GetInRange([FromBody] AppointmentsRange appointmentsRange)
         {
             var appointments = await _appointmentService.GetAppointmentsInRange(appointmentsRange);
-            if (appointments.Any() == false) return NoContent();
 
             return Ok(appointments);
         }

@@ -1,8 +1,8 @@
-﻿using CompanyManager.Server.Services;
+﻿using CompanyManager.Core.Services;
 using CompanyManager.Shared;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CompanyManager.Server.Controllers
+namespace CompanyManager.Api.Controllers
 {
     [Route("api/offer")]
     public class OfferController : ControllerBase

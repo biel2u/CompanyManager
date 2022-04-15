@@ -62,9 +62,14 @@ namespace CompanyManager.Client.DataServices
         public async Task<List<DisplayAppointmentModel>> GetAppointmentsInRange(AppointmentsRange appointmentsRange)
         {
             var response = await _http.PostAsJsonAsync($"{BaseUrl}/range", appointmentsRange);
-            var result = await response.Content.ReadFromJsonAsync<List<DisplayAppointmentModel>>();
+            if(response.StatusCode == System.Net.HttpStatusCode.OK)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<DisplayAppointmentModel>>();
+                
+                return result ?? new List<DisplayAppointmentModel>();
+            }
 
-            return result ?? new List<DisplayAppointmentModel>();
+            return new List<DisplayAppointmentModel>();
         }
 
         public async Task<HttpResponseMessage> DeleteAppointment(int id)

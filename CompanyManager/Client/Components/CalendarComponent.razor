@@ -7,7 +7,7 @@
 @implements IDisposable;
 
 <div class="calendar-days">
-    <div class="controls" style="grid-area: 1 / 1 / @CalendarConstants.GridHourRows / 2;">
+    <div class="controls" style="grid-area: 1 / 1 / @CalendarConstants.GridHourRows / 1;">
                 <div>
             <MudButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" @onclick="CurrentWeek">Dziś</MudButton>
         </div>
@@ -48,14 +48,14 @@
         {
             if(time.IsCurrentTime)
             {
-                <div class="current-hour" id="current-hour" style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 9;">
+                <div class="current-hour" id="current-hour" style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / @CalendarConstants.GridTotalColumns;">
                     @time.Hour
                 </div>
-                <div class="current-minute" style="grid-area: @(time.MinuteRow) / 1 / @(time.MinuteRow) / 9;"></div>
+                <div class="current-minute" style="grid-area: @(time.MinuteRow) / 1 / @(time.MinuteRow) / @CalendarConstants.GridTotalColumns;"></div>
             }
             else
             {
-                <div style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 2;">
+                <div style="grid-area: @time.HourRow / 1 / @(time.HourRow + CalendarConstants.GridHourRows) / 1;">
                     @time.Hour
                 </div> 
             } 

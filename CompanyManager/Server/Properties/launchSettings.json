@@ -8,7 +8,7 @@
       }
     },
     "profiles": {
-      "CompanyManager.Server": {
+      "CompanyManager.Api": {
         "commandName": "Project",
         "dotnetRunMessages": true,
         "launchBrowser": true,
