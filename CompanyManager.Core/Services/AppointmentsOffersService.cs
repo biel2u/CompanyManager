@@ -8,7 +8,7 @@ namespace CompanyManager.Core.Services
     public interface IAppointmentsOffersService
     {
         List<DisplayOfferModel> GetSelectedAppointmentsOffers(IEnumerable<AppointmentOffer> appointmentsOffers);
-        Task<bool> CreateAppointmentWithOffers(EditAppointmentModel appointment);
+        Task CreateAppointmentWithOffers(EditAppointmentModel appointment);
         Task<bool> UpdateAppointmentWithOffers(List<DisplayOfferModel> currentOffers, Appointment appointment);
     }
 
@@ -44,10 +44,10 @@ namespace CompanyManager.Core.Services
             return selectedOffers;
         }
 
-        public async Task<bool> CreateAppointmentWithOffers(EditAppointmentModel appointment)
+        public async Task CreateAppointmentWithOffers(EditAppointmentModel appointment)
         {
             var customer = await _customerService.GetCustomerByExtractedPhoneNumber(appointment.CustomerNameAndPhone);
-            if (customer == null) return false;
+            if (customer == null) return;
 
             var newAppointment = new Appointment
             {
@@ -60,9 +60,7 @@ namespace CompanyManager.Core.Services
 
             var offers = await _offerRepository.GetAllOffers().ToListAsync();
             var appointmentsOffers = BuildAppointmentOffers(appointment.Offers, newAppointment, offers);
-            var result = await _appointmentOfferRepository.CreateAppointmentWithOffers(appointmentsOffers);
-
-            return result;
+            await _appointmentOfferRepository.CreateAppointmentWithOffers(appointmentsOffers);
         }
 
         private List<AppointmentOffer> BuildAppointmentOffers(List<DisplayOfferModel> selectedOffers, Appointment appointment, List<Offer> offers)

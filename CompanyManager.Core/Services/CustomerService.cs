@@ -9,7 +9,7 @@ namespace CompanyManager.Core.Services
     {
         Task<EditCustomerModel> AddCustomer(EditCustomerModel customerViewModel);
         Task<List<string>> SearchCustomers(string searchValue);
-        Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
+        Task<Customer> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone);
         string CreateCustomerNameWithPhoneNumber(Customer customer);
     }
 
@@ -56,14 +56,22 @@ namespace CompanyManager.Core.Services
             return newCustomer;
         }
 
-        public async Task<Customer?> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone)
+        public async Task<Customer> GetCustomerByExtractedPhoneNumber(string customerNameAndPhone)
         {
-            var start = customerNameAndPhone.IndexOf("(") + 1;
-            var end = customerNameAndPhone.IndexOf(")", start);
-            var phoneNumber = customerNameAndPhone.Substring(start, end - start);
+            try
+            {
+                var start = customerNameAndPhone.IndexOf("(") + 1;
+                var end = customerNameAndPhone.IndexOf(")", start);
+                var phoneNumber = customerNameAndPhone.Substring(start, end - start);
 
-            var customer = await _customerRepository.GetCustomerByPhone(phoneNumber);
-            return customer;
+                var customer = await _customerRepository.GetCustomerByPhone(phoneNumber);
+                return customer;
+            }
+            catch(Exception)
+            {
+                //log
+                return new Customer();
+            }
         }
 
         public string CreateCustomerNameWithPhoneNumber(Customer customer)

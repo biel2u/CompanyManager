@@ -20,11 +20,9 @@ namespace CompanyManager.Api.Controllers
 
         [HttpGet("{searchValue}")]
         [ProducesResponseType(typeof(List<string>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<ActionResult<List<string>>> GetByValue(string searchValue)
+        public async Task<IActionResult> GetByValue(string searchValue)
         {
             var customers = await _customerService.SearchCustomers(searchValue);
-            if(customers.Any() == false) return NoContent();
 
             return Ok(customers);
         }
@@ -32,7 +30,7 @@ namespace CompanyManager.Api.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ModelStateDictionary), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<EditCustomerModel>> Create([FromBody] EditCustomerModel customer)
+        public async Task<IActionResult> Create([FromBody] EditCustomerModel customer)
         {
             await _customerValidator.SetModelStateErrors(customer, ModelState);
             if (ModelState.IsValid == false || customer == null || ModelState.ErrorCount > 0)

@@ -51,8 +51,8 @@ namespace CompanyManager.Api.Controllers
                 return BadRequest(ModelState);
             }
 
-            var result = await _appointmentsOffersService.CreateAppointmentWithOffers(appointment);
-            return result ? Created("appointment", ModelState) : BadRequest(ModelState);
+            await _appointmentsOffersService.CreateAppointmentWithOffers(appointment);
+            return Created("appointment", ModelState);
         }
 
         [HttpPut]

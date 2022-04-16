@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CompanyManager.Api.Controllers
 {
     [Route("api/offer")]
-    public class OfferController : ControllerBase
+    public class OfferController : ApiControllerBase
     {
         private readonly IOfferService _offerService;
 
@@ -16,11 +16,9 @@ namespace CompanyManager.Api.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(List<OffersGroup>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<OffersGroup>>> GetOffers([FromBody] OffersRequest offersRequest)
+        public async Task<IActionResult> GetOffers([FromBody] OffersRequest offersRequest)
         {
             var offers = await _offerService.GetAllOffersByParentCategory(offersRequest.SelectedOffers);
-            if(offers.Any() == false) return NotFound();
 
             return Ok(offers);
         }
