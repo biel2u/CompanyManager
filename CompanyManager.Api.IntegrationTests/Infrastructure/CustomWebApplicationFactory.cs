@@ -1,11 +1,9 @@
 using CompanyManager.Core.Data;
+using CustomerManager.Api.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 
 namespace CompanyManager.Api.IntegrationTests.Infrastructure
 {
@@ -30,11 +28,13 @@ namespace CompanyManager.Api.IntegrationTests.Infrastructure
                 {
                     try
                     {
+                        appContext.Database.EnsureDeleted();
+                        ApplicationDbContextDataFeeder.Feed(appContext);
                         appContext.Database.EnsureCreated();
                     }
                     catch (Exception ex)
                     {
-                        //Log errors or do anything you think it's needed
+                        //Log errors
                         throw;
                     }
                 }

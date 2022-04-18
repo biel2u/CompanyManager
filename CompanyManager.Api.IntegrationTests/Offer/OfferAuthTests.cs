@@ -2,10 +2,7 @@
 using CompanyManager.Api.IntegrationTests.Infrastructure;
 using CompanyManager.Shared;
 using FluentAssertions;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using Xunit;
 
@@ -21,7 +18,7 @@ namespace CompanyManager.Api.IntegrationTests.Offer
         }
 
         [Fact]
-        public async Task Post_ShouldReturnUnauthorizedForUnauthenticatedUser()
+        public async Task GetOffers_ShouldReturnUnauthorized_WhenUserUnauthenticated()
         {
             var request = new OffersRequest();
             var result = await _client.PostAsync("api/offer", request.ToStringContent());
