@@ -1,5 +1,5 @@
+using CompanyManager.Api.IntegrationTests.Infrastructure.DataFeeders;
 using CompanyManager.Core.Data;
-using CustomerManager.Api.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
