@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompanyManager.Core.Tests",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{20C8A909-1930-484C-99CC-1F968A86E804}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyManager.Api.IntegrationTests", "CompanyManager.Api.IntegrationTests\CompanyManager.Api.IntegrationTests.csproj", "{B3B4BCA4-C213-4A68-8E29-BD9289796B37}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyManager.Api.IntegrationTests", "tests\CompanyManager.Api.IntegrationTests\CompanyManager.Api.IntegrationTests.csproj", "{B3B4BCA4-C213-4A68-8E29-BD9289796B37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
