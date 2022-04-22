@@ -18,7 +18,7 @@ namespace CompanyManager.Api.IntegrationTests.Infrastructure.DataFeeders
                 Photos = new List<Photo>()
             };
 
-            dbContext.Customers.Add(customer);
+            dbContext.Customers.Add(customer);           
         }
     }
 }
